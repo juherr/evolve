@@ -22,6 +22,7 @@ import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.service.ChargePointHelperService;
 import de.rwth.idsg.steve.service.ChargePointServiceClient;
 import de.rwth.idsg.steve.service.OcppTagService;
+import de.rwth.idsg.steve.web.dto.ocpp.AvailabilityType;
 import de.rwth.idsg.steve.web.dto.ocpp.ChangeAvailabilityParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ChangeConfigurationParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyEnum;
@@ -31,6 +32,7 @@ import de.rwth.idsg.steve.web.dto.ocpp.MultipleChargePointSelect;
 import de.rwth.idsg.steve.web.dto.ocpp.RemoteStartTransactionParams;
 import de.rwth.idsg.steve.web.dto.ocpp.RemoteStopTransactionParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ResetParams;
+import de.rwth.idsg.steve.web.dto.ocpp.ResetType;
 import de.rwth.idsg.steve.web.dto.ocpp.UnlockConnectorParams;
 import de.rwth.idsg.steve.web.dto.ocpp.UpdateFirmwareParams;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import jakarta.validation.Valid;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum.RW;
@@ -77,6 +81,18 @@ public class Ocpp12Controller {
 
     protected static final String REDIRECT_TASKS_PATH = "redirect:/manager/operations/tasks/";
 
+    private static final List<String> SUPPORTED_OPS = Arrays.asList(
+            "ChangeAvailability",
+            "ChangeConfiguration",
+            "ClearCache",
+            "GetDiagnostics",
+            "RemoteStartTransaction",
+            "RemoteStopTransaction",
+            "Reset",
+            "UnlockConnector",
+            "UpdateFirmware"
+    );
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -88,6 +104,7 @@ public class Ocpp12Controller {
     protected void setCommonAttributes(Model model) {
         model.addAttribute("cpList", chargePointHelperService.getChargePoints(OcppVersion.V_12));
         model.addAttribute("opVersion", "v1.2");
+        model.addAttribute("supportedOps", SUPPORTED_OPS);
     }
 
     protected Map<String, String> getConfigurationKeys(ConfigurationKeyReadWriteEnum confEnum) {
@@ -120,6 +137,7 @@ public class Ocpp12Controller {
     public String getChangeAvail(Model model) {
         setCommonAttributes(model);
         model.addAttribute(PARAMS, new ChangeAvailabilityParams());
+        model.addAttribute("availTypes", AvailabilityType.values());
         return getPrefix() + CHANGE_AVAIL_PATH;
     }
 
@@ -127,6 +145,7 @@ public class Ocpp12Controller {
     public String getChangeConf(Model model) {
         setCommonAttributes(model);
         model.addAttribute(PARAMS, new ChangeConfigurationParams());
+        model.addAttribute("configurationKeyTypes", ChangeConfigurationParams.ConfigurationKeyType.values());
         model.addAttribute("ocppConfKeys", getConfigurationKeys(RW));
         return getPrefix() + CHANGE_CONF_PATH;
     }
@@ -164,6 +183,7 @@ public class Ocpp12Controller {
     public String getReset(Model model) {
         setCommonAttributes(model);
         model.addAttribute(PARAMS, new ResetParams());
+        model.addAttribute("resetTypes", ResetType.values());
         return getPrefix() + RESET_PATH;
     }
 

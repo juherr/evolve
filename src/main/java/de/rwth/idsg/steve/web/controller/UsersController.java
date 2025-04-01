@@ -25,6 +25,7 @@ import de.rwth.idsg.steve.utils.ControllerHelper;
 import de.rwth.idsg.steve.utils.mapper.UserFormMapper;
 import de.rwth.idsg.steve.web.dto.UserForm;
 import de.rwth.idsg.steve.web.dto.UserQueryForm;
+import de.rwth.idsg.steve.web.dto.UserSex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -130,6 +131,7 @@ public class UsersController {
 
     private void setTags(Model model) {
         model.addAttribute("countryCodes", ControllerHelper.COUNTRY_DROPDOWN);
+        model.addAttribute("sexes", UserSex.values());
         model.addAttribute("idTagList", ControllerHelper.idTagEnhancer(ocppTagService.getIdTags()));
     }
 

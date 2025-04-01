@@ -164,6 +164,7 @@ public class OcppTagsController {
         model.addAttribute("parentIdTagList", ocppTagService.getParentIdTags());
         model.addAttribute("ocppTagList", ocppTagService.getOverview(params));
         model.addAttribute("unknownList", ocppTagService.getUnknownOcppTags());
+        model.addAttribute("booleanTypes", OcppTagQueryForm.BooleanType.values());
     }
 
     protected void setTags(Model model) {

@@ -19,6 +19,7 @@
 package de.rwth.idsg.steve.web.controller;
 
 import de.rwth.idsg.steve.ocpp.OcppProtocol;
+import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.repository.ChargePointRepository;
 import de.rwth.idsg.steve.repository.dto.ChargePoint;
 import de.rwth.idsg.steve.service.ChargePointHelperService;
@@ -105,6 +106,8 @@ public class ChargePointsController {
         model.addAttribute(PARAMS, params);
         model.addAttribute("cpList", chargePointRepository.getOverview(params));
         model.addAttribute("unknownList", chargePointHelperService.getUnknownChargePoints());
+        model.addAttribute("ocppVersions", OcppVersion.values());
+        model.addAttribute("queryPeriodTypes", ChargePointQueryForm.QueryPeriodType.values());
     }
 
     @RequestMapping(value = DETAILS_PATH, method = RequestMethod.GET)
@@ -173,6 +176,9 @@ public class ChargePointsController {
     public String update(@Valid @ModelAttribute("chargePointForm") ChargePointForm chargePointForm,
                          BindingResult result, Model model) {
         if (result.hasErrors()) {
+            ChargePoint.Details cp = chargePointRepository.getDetails(chargePointForm.getChargeBoxPk());
+            model.addAttribute("cp", cp);
+            model.addAttribute("registrationStatusList", getRegistrationStatusList(cp.getChargeBox()));
             addCountryCodes(model);
             return "data-man/chargepointDetails";
         }

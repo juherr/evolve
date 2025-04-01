@@ -25,6 +25,10 @@ import de.rwth.idsg.steve.utils.mapper.ChargingProfileDetailsMapper;
 import de.rwth.idsg.steve.web.dto.ChargingProfileAssignmentQueryForm;
 import de.rwth.idsg.steve.web.dto.ChargingProfileForm;
 import de.rwth.idsg.steve.web.dto.ChargingProfileQueryForm;
+import ocpp.cp._2015._10.ChargingProfileKindType;
+import ocpp.cp._2015._10.ChargingProfilePurposeType;
+import ocpp.cp._2015._10.ChargingRateUnitType;
+import ocpp.cp._2015._10.RecurrencyKindType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -80,9 +84,18 @@ public class ChargingProfilesController {
         return "data-man/chargingProfiles";
     }
 
+    protected void setCommonAttributes(Model model) {
+      model.addAttribute("profilePurposes", ChargingProfilePurposeType.values());
+      model.addAttribute("profileKinds", ChargingProfileKindType.values());
+      model.addAttribute("recurrencyKinds", RecurrencyKindType.values());
+      model.addAttribute("chargingRateUnits", ChargingRateUnitType.values());
+    }
+
     @RequestMapping(value = ADD_PATH, method = RequestMethod.GET)
     public String addGet(Model model) {
         model.addAttribute("form", new ChargingProfileForm());
+        setCommonAttributes(model);
+
         return "data-man/chargingProfileAdd";
     }
 
@@ -90,6 +103,7 @@ public class ChargingProfilesController {
     public String addPost(@Valid @ModelAttribute("form") ChargingProfileForm form,
                           BindingResult result, Model model) {
         if (result.hasErrors()) {
+            setCommonAttributes(model);
             return "data-man/chargingProfileAdd";
         }
 
@@ -101,6 +115,7 @@ public class ChargingProfilesController {
     public String update(@Valid @ModelAttribute("form") ChargingProfileForm form,
                          BindingResult result, Model model) {
         if (result.hasErrors()) {
+            setCommonAttributes(model);
             return "data-man/chargingProfileDetails";
         }
 
@@ -130,6 +145,8 @@ public class ChargingProfilesController {
         ChargingProfileForm form = ChargingProfileDetailsMapper.mapToForm(details);
 
         model.addAttribute("form", form);
+        setCommonAttributes(model);
+
         return "data-man/chargingProfileDetails";
     }
 
@@ -144,6 +161,7 @@ public class ChargingProfilesController {
 
     private void initList(ChargingProfileQueryForm queryForm, Model model) {
         model.addAttribute("profileList", repository.getOverview(queryForm));
+        setCommonAttributes(model);
     }
 
     private String toOverview() {

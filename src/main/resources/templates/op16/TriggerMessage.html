@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('OCPP ' + ${opVersion} + ' - Trigger Message')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+<div th:replace="~{fragments/common :: bind-errors('params')}"></div>
+
+<div class="content">
+    <div th:replace="~{op-layouts/_operationLayout :: operation-layout(opVersion=${opVersion}, activePage='TriggerMessage', pageContent=~{:: .op-content})}">
+        <div class="op-content">
+            <div th:replace="~{op-forms/_operationFragments :: trigger-message-form}"></div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

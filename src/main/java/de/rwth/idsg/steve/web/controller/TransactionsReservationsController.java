@@ -146,11 +146,14 @@ public class TransactionsReservationsController {
     private void initList(Model model) {
         model.addAttribute("cpList", chargePointRepository.getChargeBoxIds());
         model.addAttribute("idTagList", ocppTagService.getIdTags());
+        model.addAttribute("queryTypes", TransactionQueryForm.QueryType.values());
+        model.addAttribute("queryPeriodTypes", TransactionQueryForm.QueryPeriodType.values());
     }
 
     private void initResList(Model model) {
         initList(model);
         model.addAttribute("statusList", ReservationStatus.getValues());
+        model.addAttribute("queryPeriodTypes", ReservationQueryForm.QueryPeriodType.values());
     }
 
 }
