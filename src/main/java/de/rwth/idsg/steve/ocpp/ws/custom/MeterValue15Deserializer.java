@@ -24,9 +24,9 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.rwth.idsg.ocpp.jaxb.JavaDateTimeConverter;
 import lombok.extern.slf4j.Slf4j;
 import ocpp.cs._2012._06.MeterValue;
-import org.joda.time.DateTime;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,9 +44,11 @@ import java.util.List;
 @Slf4j
 public class MeterValue15Deserializer extends JsonDeserializer<List<MeterValue>> {
 
+    private final JavaDateTimeConverter dateTimeConverter = new JavaDateTimeConverter();
+
     @Override
     public List<MeterValue> deserialize(JsonParser jp, DeserializationContext deserializationContext)
-            throws IOException, JsonProcessingException {
+            throws IOException {
 
         ObjectMapper mapper = (ObjectMapper) jp.getCodec();
         JsonNode node = mapper.readTree(jp);
@@ -86,7 +88,7 @@ public class MeterValue15Deserializer extends JsonDeserializer<List<MeterValue>>
     }
 
     // List<MeterValue.Value>
-    private void parseValue(ObjectMapper mapper, List<MeterValue.Value> list, JsonNode listNode)
+    private static void parseValue(ObjectMapper mapper, List<MeterValue.Value> list, JsonNode listNode)
             throws JsonProcessingException {
 
         if (!listNode.isMissingNode()) {
@@ -98,7 +100,7 @@ public class MeterValue15Deserializer extends JsonDeserializer<List<MeterValue>>
 
     private void parseDateTime(MeterValue meterValue, JsonNode node) {
         if (!node.isMissingNode()) {
-            meterValue.setTimestamp(new DateTime(node.asText()));
+            meterValue.setTimestamp(dateTimeConverter.unmarshal(node.asText()));
         }
     }
 }
