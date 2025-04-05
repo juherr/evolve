@@ -131,7 +131,7 @@
                         <exclude>**/*.PNG</exclude>
                         <exclude>**/Dockerfile</exclude>
                         <!-- <exclude>**/*.jsp</exclude> -->
-
+                        <exclude>**/*.wsdl</exclude>
                     </excludes>
                     <mapping>
                         <java>SLASHSTAR_STYLE</java>
@@ -304,6 +304,127 @@
                         </manifest>
                     </archive>
                 </configuration>
+            </plugin>
+
+            <!-- steve-jaxb -->
+            <plugin>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-codegen-plugin</artifactId>
+                <version>${cxf.version}</version>
+                <configuration>
+                    <sourceRoot>${project.build.directory}/generated-sources</sourceRoot>
+                    <wsdlRoot>${basedir}/src/main/resources/wsdl</wsdlRoot>
+                    <defaultOptions>
+                        <bindingFiles>
+                            <bindingFile>${basedir}/src/main/resources/wsdl-binding/ocpp_binding.xml</bindingFile>
+                            <bindingFile>${basedir}/src/main/resources/wsdl-binding/async_binding.xml</bindingFile>
+                            <bindingFile>${basedir}/src/main/resources/wsdl-binding/add_interface.xml</bindingFile>
+                        </bindingFiles>
+                        <extraargs>
+                            <extraarg>-xjc-Xfluent-api</extraarg>
+                            <extraarg>-xjc-Xinheritance</extraarg>
+                            <extraarg>-xjc-Xannotate</extraarg>
+                            <!--<extraarg>-verbose</extraarg>-->
+                            <extraarg>-exsh</extraarg>
+                            <extraarg>true</extraarg>
+                        </extraargs>
+                    </defaultOptions>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>wsdl2java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>${lombok.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb</groupId>
+                        <artifactId>jaxb-plugins</artifactId>
+                        <version>4.0.8</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb</groupId>
+                        <artifactId>jaxb-plugin-annotate</artifactId>
+                        <version>4.0.8</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <id>add-request-interface</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <configuration>
+                            <filesToInclude>${basedir}/src/main/resources/OCPP-2.0.1_part3_JSON_schemas/*Request.json</filesToInclude>
+                            <preserveDir>false</preserveDir>
+                            <outputDir>${project.build.directory}/generated-resources</outputDir>
+                            <replacements>
+                                <replacement>
+                                    <token>"definitions"</token>
+                                    <value>"javaInterfaces" : ["de.rwth.idsg.ocpp.jaxb.RequestType"],
+                                      "definitions"</value>
+                                </replacement>
+                              </replacements>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add-response-interface</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <configuration>
+                            <filesToInclude>${basedir}/src/main/resources/OCPP-2.0.1_part3_JSON_schemas/*Response.json</filesToInclude>
+                            <preserveDir>false</preserveDir>
+                            <outputDir>${project.build.directory}/generated-resources</outputDir>
+                            <replacements>
+                                <replacement>
+                                    <token>"definitions"</token>
+                                    <value>"javaInterfaces" : ["de.rwth.idsg.ocpp.jaxb.ResponseType"],
+                                      "definitions"</value>
+                                </replacement>
+                              </replacements>
+                          </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jsonschema2pojo</groupId>
+                <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <sourceDirectory>${project.build.directory}/generated-resources</sourceDirectory>
+                    <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+                    <targetPackage>ocpp._2020._03</targetPackage>
+                    <generateBuilders>true</generateBuilders>
+                    <includeJsr303Annotations>true</includeJsr303Annotations>
+                    <includeGeneratedAnnotation>false</includeGeneratedAnnotation>
+                    <useJakartaValidation>true</useJakartaValidation>
+                    <dateType>java.time.LocalDate</dateType>
+                    <dateTimeType>java.time.OffsetDateTime</dateTimeType>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Pre-compiles JSPs -->
@@ -503,11 +624,6 @@
             <groupId>com.github.goekay</groupId>
             <artifactId>CompositeJKS</artifactId>
             <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.juherr</groupId>
-            <artifactId>ocpp-jaxb</artifactId>
-            <version>feature~java-time-a74e2a0636-1</version>
         </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>
