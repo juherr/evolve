@@ -73,7 +73,7 @@ public class JavaDateTimeConverter extends XmlAdapter<String, OffsetDateTime> {
         .toFormatter(Locale.ROOT);
 
     @Override
-    public OffsetDateTime unmarshal(String v) throws Exception {
+    public OffsetDateTime unmarshal(String v) {
         if (isNullOrEmpty(v)) {
             return null;
         } else {
@@ -90,7 +90,7 @@ public class JavaDateTimeConverter extends XmlAdapter<String, OffsetDateTime> {
     }
 
     @Override
-    public String marshal(OffsetDateTime v) throws Exception {
+    public String marshal(OffsetDateTime v) {
         if (v == null) {
             return null;
         } else {
