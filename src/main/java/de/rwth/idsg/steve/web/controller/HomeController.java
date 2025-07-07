@@ -24,7 +24,6 @@ import de.rwth.idsg.steve.service.ChargePointHelperService;
 import de.rwth.idsg.steve.utils.ConnectorStatusCountFilter;
 import de.rwth.idsg.steve.utils.ConnectorStatusFilter;
 import de.rwth.idsg.steve.web.dto.ConnectorStatusForm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -42,8 +41,8 @@ import java.util.List;
 @RequestMapping(value = "/manager", method = RequestMethod.GET)
 public class HomeController {
 
-    @Autowired private ChargePointRepository chargePointRepository;
-    @Autowired private ChargePointHelperService chargePointHelperService;
+    private final ChargePointRepository chargePointRepository;
+    private final ChargePointHelperService chargePointHelperService;
 
     private static final String PARAMS = "params";
 
@@ -56,6 +55,13 @@ public class HomeController {
     private static final String OCPP_JSON_STATUS = HOME_PREFIX + "/ocppJsonStatus";
     private static final String CONNECTOR_STATUS_PATH = HOME_PREFIX + "/connectorStatus";
     private static final String CONNECTOR_STATUS_QUERY_PATH = HOME_PREFIX + "/connectorStatus/query";
+
+    public HomeController(ChargePointRepository chargePointRepository,
+                          ChargePointHelperService chargePointHelperService) {
+        this.chargePointRepository = chargePointRepository;
+        this.chargePointHelperService = chargePointHelperService;
+    }
+
     // -------------------------------------------------------------------------
     // HTTP methods
     // -------------------------------------------------------------------------

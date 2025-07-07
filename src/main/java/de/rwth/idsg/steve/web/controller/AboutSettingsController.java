@@ -25,7 +25,6 @@ import de.rwth.idsg.steve.service.MailService;
 import de.rwth.idsg.steve.service.ReleaseCheckService;
 import de.rwth.idsg.steve.web.dto.EndpointInfo;
 import de.rwth.idsg.steve.web.dto.SettingsForm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -49,11 +48,11 @@ import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
 @RequestMapping(value = "/manager")
 public class AboutSettingsController {
 
-    @Autowired private GenericRepository genericRepository;
-    @Autowired private LogController logController;
-    @Autowired private SettingsRepository settingsRepository;
-    @Autowired private MailService mailService;
-    @Autowired private ReleaseCheckService releaseCheckService;
+    private final GenericRepository genericRepository;
+    private final LogController logController;
+    private final SettingsRepository settingsRepository;
+    private final MailService mailService;
+    private final ReleaseCheckService releaseCheckService;
 
     // -------------------------------------------------------------------------
     // Paths
@@ -61,6 +60,16 @@ public class AboutSettingsController {
 
     private static final String ABOUT_PATH = "/about";
     private static final String SETTINGS_PATH = "/settings";
+
+    public AboutSettingsController(GenericRepository genericRepository, LogController logController,
+                                   SettingsRepository settingsRepository, MailService mailService,
+                                   ReleaseCheckService releaseCheckService) {
+        this.genericRepository = genericRepository;
+        this.logController = logController;
+        this.settingsRepository = settingsRepository;
+        this.mailService = mailService;
+        this.releaseCheckService = releaseCheckService;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods

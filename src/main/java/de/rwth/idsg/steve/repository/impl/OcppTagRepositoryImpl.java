@@ -35,7 +35,6 @@ import org.jooq.Result;
 import org.jooq.SelectQuery;
 import org.jooq.TableField;
 import org.jooq.exception.DataAccessException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -59,7 +58,6 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
 
     private final DSLContext ctx;
 
-    @Autowired
     public OcppTagRepositoryImpl(DSLContext ctx) {
         this.ctx = ctx;
     }
@@ -268,13 +266,16 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
         public OcppTagOverview map(
           Record10<Integer, Integer, String, String, OffsetDateTime, Boolean, Boolean, Integer, Long, String> r
         ) {
+            OffsetDateTime expiryDate = r.value5();
+            String expiryDateFormatted = (expiryDate == null) ? null : humanize(expiryDate.toLocalDateTime());
+
             return OcppTagOverview.builder()
                           .ocppTagPk(r.value1())
                           .parentOcppTagPk(r.value2())
                           .idTag(r.value3())
                           .parentIdTag(r.value4())
-                          .expiryDate(r.value5())
-                          .expiryDateFormatted(humanize(r.value5().toLocalDateTime()))
+                          .expiryDate(expiryDate)
+                          .expiryDateFormatted(expiryDateFormatted)
                           .inTransaction(r.value6())
                           .blocked(r.value7())
                           .maxActiveTransactionCount(r.value8())

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Tasks')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <section><span>
+        Request Tasks <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle"><span>Click on Task IDs for detailed task information.</span></a>
+    </span></section>
+    <form th:action="@{/manager/operations/tasks}" method="post">
+        <input type="submit" name="finished" value="Delete Finished"/>
+        <input type="submit" name="unfinished" value="Delete Unfinished"/>
+    </form>
+    <br>
+    <table class="res">
+        <thead>
+        <tr>
+            <th data-sort="int">Task ID</th>
+            <th data-sort="string">Origin</th>
+            <th data-sort="date">Start Timestamp</th>
+            <th data-sort="date">End Timestamp</th>
+            <th>Responses / Requests</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="task : ${taskList}">
+            <td><a th:href="@{/manager/operations/tasks/{id}(id=${task.taskId})}" th:text="${task.taskId}"></a></td>
+            <td th:text="${task.origin}"></td>
+            <td th:data-sort-value="${task.start.time}" th:text="${task.start}"></td>
+            <td th:data-sort-value="${task.end.time}" th:text="${task.end}"></td>
+            <td th:text="${task.responseCount} + ' / ' + ${task.requestCount}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var table = $(".res").stupidtable({
+            "date": function (a, b) {
+                var aDate = (parseInt(a) || 0);
+                var bDate = (parseInt(b) || 0);
+                return aDate - bDate;
+            }
+        });
+
+        table.on("aftertablesort", function (event, data) {
+            var th = $(this).find("th");
+            th.find(".arrow").remove();
+            var dir = $.fn.stupidtable.dir;
+
+            // https://en.wikipedia.org/wiki/Geometric_Shapes
+            var arrow = data.direction === dir.ASC ? "&#9650;" : "&#9660;";
+            th.eq(data.column).append('<span class="arrow" style="float: right">' + arrow + '</span>');
+        });
+    });
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

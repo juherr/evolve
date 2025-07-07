@@ -19,6 +19,9 @@
 package de.rwth.idsg.steve.web.controller;
 
 import de.rwth.idsg.steve.ocpp.OcppVersion;
+import de.rwth.idsg.steve.service.ChargePointHelperService;
+import de.rwth.idsg.steve.service.ChargePointServiceClient;
+import de.rwth.idsg.steve.service.OcppTagService;
 import de.rwth.idsg.steve.web.dto.ocpp.CancelReservationParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyEnum;
 import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum;
@@ -27,6 +30,7 @@ import de.rwth.idsg.steve.web.dto.ocpp.GetConfigurationParams;
 import de.rwth.idsg.steve.web.dto.ocpp.MultipleChargePointSelect;
 import de.rwth.idsg.steve.web.dto.ocpp.ReserveNowParams;
 import de.rwth.idsg.steve.web.dto.ocpp.SendLocalListParams;
+import de.rwth.idsg.steve.web.dto.ocpp.SendLocalListUpdateType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -36,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import jakarta.validation.Valid;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum.RW;
@@ -63,10 +69,38 @@ public class Ocpp15Controller extends Ocpp12Controller {
     // Helpers
     // -------------------------------------------------------------------------
 
+    private static final List<String> SUPPORTED_OPS = Arrays.asList(
+            "ChangeAvailability",
+            "ChangeConfiguration",
+            "ClearCache",
+            "DataTransfer",
+            "GetConfiguration",
+            "GetDiagnostics",
+            "GetLocalListVersion",
+            "RemoteStartTransaction",
+            "RemoteStopTransaction",
+            "ReserveNow",
+            "Reset",
+            "SendLocalList",
+            "UnlockConnector",
+            "UpdateFirmware"
+    );
+
+    public Ocpp15Controller(ChargePointHelperService chargePointHelperService, OcppTagService ocppTagService,
+                            ChargePointServiceClient chargePointServiceClient) {
+        super(chargePointHelperService, ocppTagService, chargePointServiceClient);
+    }
+
     @Override
     protected void setCommonAttributes(Model model) {
         model.addAttribute("cpList", chargePointHelperService.getChargePoints(OcppVersion.V_15));
         model.addAttribute("opVersion", "v1.5");
+        model.addAttribute("supportedOps", SUPPORTED_OPS);
+    }
+
+    @Override
+    protected void setCommonAttributesForTx(Model model) {
+        setCommonAttributes(model);
     }
 
     @Override
@@ -135,6 +169,7 @@ public class Ocpp15Controller extends Ocpp12Controller {
         setCommonAttributes(model);
         setAllUserIdTagList(model);
         model.addAttribute(PARAMS, new SendLocalListParams());
+        model.addAttribute("updateTypes", SendLocalListUpdateType.values());
         return getPrefix() + SEND_LIST_PATH;
     }
 

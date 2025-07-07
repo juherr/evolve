@@ -56,13 +56,11 @@ import ocpp.cs._2015._10.StatusNotificationRequest;
 import ocpp.cs._2015._10.StatusNotificationResponse;
 import ocpp.cs._2015._10.StopTransactionRequest;
 import ocpp.cs._2015._10.StopTransactionResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static de.rwth.idsg.steve.utils.DateTimeUtils.toOffsetDateTime;
@@ -75,17 +73,28 @@ import static de.rwth.idsg.steve.utils.DateTimeUtils.toOffsetDateTime;
 @Service
 public class CentralSystemService16_Service {
 
-    @Autowired private OcppServerRepository ocppServerRepository;
-    @Autowired private SettingsRepository settingsRepository;
+    private final OcppServerRepository ocppServerRepository;
+    private final SettingsRepository settingsRepository;
 
-    @Autowired private OcppTagService ocppTagService;
-    @Autowired private ApplicationEventPublisher applicationEventPublisher;
-    @Autowired private ChargePointHelperService chargePointHelperService;
+    private final OcppTagService ocppTagService;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final RegistrationStatusService registrationStatusService;
+
+    public CentralSystemService16_Service(OcppServerRepository ocppServerRepository,
+                                          SettingsRepository settingsRepository, OcppTagService ocppTagService,
+                                          ApplicationEventPublisher applicationEventPublisher,
+                                          RegistrationStatusService registrationStatusService) {
+        this.ocppServerRepository = ocppServerRepository;
+        this.settingsRepository = settingsRepository;
+        this.ocppTagService = ocppTagService;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.registrationStatusService = registrationStatusService;
+    }
 
     public BootNotificationResponse bootNotification(BootNotificationRequest parameters, String chargeBoxIdentity,
                                                      OcppProtocol ocppProtocol) {
 
-        Optional<RegistrationStatus> status = chargePointHelperService.getRegistrationStatus(chargeBoxIdentity);
+        Optional<RegistrationStatus> status = registrationStatusService.getRegistrationStatus(chargeBoxIdentity);
         applicationEventPublisher.publishEvent(new OccpStationBooted(chargeBoxIdentity, status));
         LocalDateTime now = LocalDateTime.now();
 

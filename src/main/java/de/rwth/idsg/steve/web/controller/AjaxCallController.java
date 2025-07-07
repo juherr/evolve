@@ -25,7 +25,6 @@ import de.rwth.idsg.steve.repository.ChargePointRepository;
 import de.rwth.idsg.steve.repository.ReservationRepository;
 import de.rwth.idsg.steve.repository.TransactionRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,11 +50,18 @@ import java.util.List;
         produces = MediaType.APPLICATION_JSON_VALUE)
 public class AjaxCallController {
 
-    @Autowired private ChargePointRepository chargePointRepository;
-    @Autowired private TransactionRepository transactionRepository;
-    @Autowired private ReservationRepository reservationRepository;
+    private final ChargePointRepository chargePointRepository;
+    private final TransactionRepository transactionRepository;
+    private final ReservationRepository reservationRepository;
 
     private ObjectMapper objectMapper;
+
+    public AjaxCallController(ChargePointRepository chargePointRepository, TransactionRepository transactionRepository,
+                              ReservationRepository reservationRepository) {
+        this.chargePointRepository = chargePointRepository;
+        this.transactionRepository = transactionRepository;
+        this.reservationRepository = reservationRepository;
+    }
 
     @PostConstruct
     private void init() {

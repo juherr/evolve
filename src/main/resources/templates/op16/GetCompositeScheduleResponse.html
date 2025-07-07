@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Get Composite Schedule Response')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div>
+        <center>
+            <table id='details' class='cpd'>
+                <thead><tr><th>GetCompositeScheduleResponse</th><th></th></tr></thead>
+                <tr><td>ChargeBox ID:</td><td th:text="${chargeBoxId}"></td></tr>
+                <tr><td>Connector ID:</td><td th:text="${response.connectorId}"></td></tr>
+                <tr><td>Schedule Start:</td><td th:text="${response.scheduleStart}"></td></tr>
+                <tr><td>Duration (in seconds):</td><td th:text="${response.chargingSchedule.duration}"></td></tr>
+                <tr><td>Start Schedule:</td><td th:text="${response.chargingSchedule.startSchedule}"></td></tr>
+                <tr><td>Charging Rate Unit:</td><td th:text="${response.chargingSchedule.chargingRateUnit}"></td></tr>
+                <tr><td>Min Charging Rate:</td><td th:text="${response.chargingSchedule.minChargingRate}"></td></tr>
+            </table>
+        </center>
+        <br>
+        <section><span>Schedule Periods</span></section>
+        <table class="res">
+            <thead>
+            <tr>
+                <th>Start Period (in sec)</th>
+                <th>Power Limit (in amperes)</th>
+                <th>Number Phases</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="element : ${response.chargingSchedule.chargingSchedulePeriod}">
+                <td th:text="${element.startPeriod}"></td>
+                <td th:text="${element.limit}"></td>
+                <td th:text="${element.numberPhases}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -30,7 +30,6 @@ import jooq.steve.db.tables.records.TransactionStartRecord;
 import lombok.Builder;
 import ocpp.cs._2012._06.UnitOfMeasure;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -49,8 +48,14 @@ import static de.rwth.idsg.steve.utils.TransactionStopServiceHelper.kWhStringToW
 @Service
 public class TransactionStopService {
 
-    @Autowired private TransactionRepository transactionRepository;
-    @Autowired private OcppServerRepository ocppServerRepository;
+    private final TransactionRepository transactionRepository;
+    private final OcppServerRepository ocppServerRepository;
+
+    public TransactionStopService(TransactionRepository transactionRepository,
+                                  OcppServerRepository ocppServerRepository) {
+        this.transactionRepository = transactionRepository;
+        this.ocppServerRepository = ocppServerRepository;
+    }
 
     public void stop(List<Integer> transactionPkList) {
         transactionPkList.stream()

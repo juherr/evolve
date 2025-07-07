@@ -44,7 +44,6 @@ import org.jooq.SelectQuery;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -73,7 +72,6 @@ public class ChargePointRepositoryImpl implements ChargePointRepository {
     private final DSLContext ctx;
     private final AddressRepository addressRepository;
 
-    @Autowired
     public ChargePointRepositoryImpl(DSLContext ctx, AddressRepository addressRepository) {
         this.ctx = ctx;
         this.addressRepository = addressRepository;

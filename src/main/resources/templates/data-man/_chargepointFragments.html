@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="address-form">
+    <table class="userInput">
+        <thead><tr><th>Address</th><th></th></tr></thead>
+        <tr><td>Street:</td><td><input type="text" th:field="*{address.street}"/></td></tr>
+        <tr><td>House Number:</td><td><input type="text" th:field="*{address.houseNumber}"/></td></tr>
+        <tr><td>Zip code:</td><td><input type="text" th:field="*{address.zipCode}"/></td></tr>
+        <tr><td>City:</td><td><input type="text" th:field="*{address.city}"/></td></tr>
+        <tr><td>Country:</td><td>
+            <select th:field="*{address.country}">
+                <option th:each="c : ${countryCodes}" th:value="${c.key}" th:text="${c.value}"></option>
+            </select>
+        </td></tr>
+    </table>
+</div>
+
+<div th:fragment="misc-form(submitName, submitValue)">
+    <table class="userInput">
+        <thead><tr><th>Misc.</th><th></th></thead>
+        <tr><td>Description:</td><td><input type="text" th:field="*{description}"/></td></tr>
+        <tr>
+            <td>Admin Address:</td>
+            <td>
+                <input type="text" th:field="*{adminAddress}"/>
+                <a th:if="${cp != null and cp.chargeBox != null and cp.chargeBox.adminAddress != null}" target="_blank" th:href="${cp.chargeBox.adminAddress}">Go</a>
+            </td>
+        </tr>
+        <tr><td>Latitude:</td><td><input type="text" th:field="*{locationLatitude}"/></td></tr>
+        <tr><td>Longitude:</td><td><input type="text" th:field="*{locationLongitude}"/></td></tr>
+
+        <tr th:if="${(cp != null and cp.chargeBox != null and cp.chargeBox.locationLongitude != null) and (cp.chargeBox.locationLatitude != null)}">
+            <td></td>
+            <td><a target="_blank"
+                   th:href="@{'https://maps.google.com/?q=' + ${cp.chargeBox.locationLatitude} + ',' + ${cp.chargeBox.locationLongitude}}">
+                Show on Google Maps</a>
+            </td>
+        </tr>
+
+        <tr><td>Additional Note:</td><td><textarea th:field="*{note}"></textarea></td></tr>
+        <tr><td></td>
+            <td id="add_space">
+                <input type="submit" th:name="${submitName}" th:value="${submitValue}"/>
+                <input type="submit" name="backToOverview" value="Back to Overview"/>
+            </td></tr>
+    </table>
+</div>
+
+</body>
+</html>

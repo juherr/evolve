@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('OCPP JSON Status')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div>
+        <section><span>
+            Connection Status for JSON Charge Points
+            <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                <span>There can be multiple entries for a charge point.
+                    This indicates that charge point has opened more than one actual connection.</span>
+            </a>
+        </span></section>
+        <table class="res">
+            <thead>
+            <tr>
+                <th data-sort="string">ChargeBox ID</th>
+                <th data-sort="string">OCPP Version</th>
+                <th data-sort="date">Connected Since</th>
+                <th data-sort="string">Connection Duration</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${ocppJsonStatusList}">
+                <td><a th:href="@{/manager/chargepoints/details/{pk}(pk=${s.chargeBoxPk})}" th:text="${s.chargeBoxId}"></a></td>
+                <td th:text="${s.version.value}"></td>
+                <td th:data-sort-value="${s.connectedSinceDT.time}" th:text="${s.connectedSince}"></td>
+                <td th:text="${s.connectionDuration}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var table = $(".res").stupidtable({
+            "date": function (a, b) {
+                var aDate = (parseInt(a) || 0);
+                var bDate = (parseInt(b) || 0);
+                return aDate - bDate;
+            }
+        });
+
+        table.on("aftertablesort", function (event, data) {
+            var th = $(this).find("th");
+            th.find(".arrow").remove();
+            var dir = $.fn.stupidtable.dir;
+
+            // https://en.wikipedia.org/wiki/Geometric_Shapes
+            var arrow = data.direction === dir.ASC ? "&#9650;" : "&#9660;";
+            th.eq(data.column).append('<span class="arrow" style="float: right">' + arrow + '</span>');
+        });
+    });
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Task Result')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <th:block th:if="${not task.isFinished()}">
+        <script>
+            $(document).ready(
+                    setTimeout(function(){
+                        window.location.reload(1);
+                    }, 5000));
+        </script>
+        <div class="info"><b>Info:</b> This page automatically reloads every 5 seconds until the task is finished.</div>
+    </th:block>
+
+    <center>
+        <table id='details' class='cpd'>
+            <thead><tr><th>Task Details</th><th></th></tr></thead>
+            <tr><td>Operation name</td><td th:text="${task.operationName}"></td></tr>
+            <tr><td>Origin</td><td th:text="${task.origin} + ' (' + ${task.caller} + ')'"></td></tr>
+            <tr><td>Start timestamp</td><td th:text="${task.startTimestamp}"></td></tr>
+            <tr><td>End timestamp</td><td th:text="${task.endTimestamp}"></td></tr>
+            <tr><td># of charge point requests</td><td th:text="${#maps.size(task.resultMap)}"></td></tr>
+            <tr><td># of responses</td><td th:text="${task.responseCount}"></td></tr>
+            <tr><td># of errors</td><td th:text="${task.errorCount}"></td></tr>
+        </table>
+    </center>
+    <br>
+    <section><span>Task Result</span></section>
+    <table class="res">
+        <thead><tr><th>ChargeBox ID</th><th>Response</th><th>Error</th></tr></thead>
+        <tbody>
+        <tr th:each="result : ${task.resultMap}">
+            <td th:text="${result.key}"></td>
+            <td>
+                <span th:text="${result.value.response}"></span>
+                <th:block th:if="${result.value.details != null}">
+                    (<a th:href="@{/manager/operations/tasks/{taskId}/details/{key}(taskId=${taskId}, key=${result.key})}">Details</a>)
+                </th:block>
+            </td>
+            <td th:text="${result.value.errorMessage}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

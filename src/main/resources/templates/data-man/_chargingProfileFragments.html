@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="profile-form(submitName, submitValue)">
+    <table class="userInput">
+        <thead><tr><th>Details</th><th></th></tr></thead>
+        <tr><td>Description:</td><td><input type="text" th:field="*{description}"/></td></tr>
+        <tr><td>Stack Level (integer):</td><td><input type="text" th:field="*{stackLevel}"/></td></tr>
+        <tr>
+            <td>Charging Profile Purpose:</td>
+            <td>
+                <select th:field="*{chargingProfilePurpose}">
+                    <option th:each="p : ${profilePurposes}" th:value="${p}" th:text="${p.value}"></option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Charging Profile Kind:</td>
+            <td>
+                <select th:field="*{chargingProfileKind}">
+                    <option th:each="k : ${profileKinds}" th:value="${k}" th:text="${k.value}"></option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Recurrency Kind:</td>
+            <td>
+                <select th:field="*{recurrencyKind}">
+                    <option value="">-- Empty --</option>
+                    <option th:each="r : ${recurrencyKinds}" th:value="${r}" th:text="${r.value}"></option>
+                </select>
+            </td>
+        </tr>
+        <tr><td>Valid From:</td><td><input type="text" th:field="*{validFrom}" class="dateTimePicker"/></td></tr>
+        <tr><td>Valid To:</td><td><input type="text" th:field="*{validTo}" class="dateTimePicker"/></td></tr>
+        <tr><td>Duration (in seconds):</td><td><input type="text" th:field="*{durationInSeconds}"/></td></tr>
+        <tr><td>Start Schedule:</td><td><input type="text" th:field="*{startSchedule}" class="dateTimePicker"/></td></tr>
+        <tr>
+            <td>Charging Rate Unit:</td>
+            <td>
+                <select th:field="*{chargingRateUnit}">
+                    <option th:each="u : ${chargingRateUnits}" th:value="${u}" th:text="${u.value}"></option>
+                </select>
+            </td>
+        </tr>
+        <tr><td>Min Charging Rate (decimal, multiple of 0.1):</td><td><input type="text" th:field="*{minChargingRate}"/></td></tr>
+        <tr><td>Additional Note:</td><td><textarea th:field="*{note}"></textarea></td></tr>
+    </table>
+    <br/><br/>
+    <section><span>Schedule Periods</span></section>
+    <table class="res" id="periodsTable">
+        <thead>
+        <tr>
+            <th>Start Period (in sec)</th>
+            <th>Power Limit (in Charging Rate Unit selected above)</th>
+            <th>Number Phases</th>
+            <th>
+                <input type="button" id="addRow" value="Add Period"/>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="schedulePeriodMapEntry : *{schedulePeriodMap}" th:id="${schedulePeriodMapEntry.key}">
+            <td><input type="text" th:field="*{schedulePeriodMap[__${schedulePeriodMapEntry.key}__].startPeriodInSeconds}"/></td>
+            <td><input type="text" th:field="*{schedulePeriodMap[__${schedulePeriodMapEntry.key}__].powerLimit}"/></td>
+            <td><input type="text" th:field="*{schedulePeriodMap[__${schedulePeriodMapEntry.key}__].numberPhases}" placeholder="if empty, 3 will be assumed"/></td>
+            <td><input type="button" class="removeRow" value="Delete"/></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="userInput">
+        <tr>
+            <td></td>
+            <td id="add_space">
+                <input type="submit" th:name="${submitName}" th:value="${submitValue}"/>
+                <input type="submit" name="backToOverview" value="Back to Overview"/>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

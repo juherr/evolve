@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('OCPP Tags')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div>
+        <section><span id="unknown" style="cursor: pointer">
+            Unknown Tags
+            <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                <span>A list of RFID tags that were used in authorization attempts but were not present in database.</span>
+            </a>
+        </span></section>
+        <div id="unknownTable" style="display: none">
+            <table class="res add-margin-bottom">
+                <thead>
+                <tr>
+                    <th data-sort="string">ID Tag</th>
+                    <th data-sort="int"># of Attempts</th>
+                    <th data-sort="date">Last Attempt</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${unknownList}">
+                    <td th:text="${item.key}"></td>
+                    <td th:text="${item.numberOfAttempts}"></td>
+                    <td th:data-sort-value="${#temporals.format(item.lastAttemptTimestamp, 'yyyy-MM-dd''T''HH:mm:ss.SSS')}" th:text="${item.lastAttemptTimestamp}"></td>
+                    <td class="inlineWrapper">
+                        <form class="inline" th:action="@{/manager/ocppTags/unknown/add/{key}(key=${item.key})}" method="post">
+                            <input type="submit" class="blueSubmit" value="Add"/>
+                        </form>
+                        &nbsp;
+                        <form class="inline" th:action="@{/manager/ocppTags/unknown/remove/{key}(key=${item.key})}" method="post">
+                            <input type="submit" class="redSubmit" value="Forget"/>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <section><span>
+            OCPP Tag Overview
+            <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                <span>Deleting an OCPP tag causes losing all related information including transactions and reservations.</span>
+            </a>
+        </span></section>
+        <div id="overview">
+            <form th:action="@{/manager/ocppTags/query}" method="get" th:object="${params}">
+                <table class="userInput">
+                    <tr>
+                        <td>ID Tag:</td>
+                        <td>
+                            <select th:field="*{idTag}">
+                                <option value="">All</option>
+                                <option th:each="i : ${idTagList}" th:value="${i}" th:text="${i}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Parent ID Tag:</td>
+                        <td>
+                            <select th:field="*{parentIdTag}">
+                                <option value="">All</option>
+                                <option th:each="p : ${parentIdTagList}" th:value="${p}" th:text="${p}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Expired?:</td>
+                        <td>
+                            <select th:field="*{expired}">
+                                <option th:each="e : ${booleanTypes}" th:value="${e.name}" th:text="${e.value}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>In Transaction?:</td>
+                        <td>
+                            <select th:field="*{inTransaction}">
+                                <option th:each="t : ${booleanTypes}" th:value="${t.name}" th:text="${t.value}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Blocked?:</td>
+                        <td>
+                            <select th:field="*{blocked}">
+                                <option th:each="b : ${booleanTypes}" th:value="${b.name}" th:text="${b.value}"></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Note:</td>
+                        <td><input type="text" th:field="*{note}"/></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td id="add_space">
+                            <input type="submit" value="Get">
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <br>
+            <table class="res action">
+                <thead>
+                <tr>
+                    <th data-sort="string">ID Tag</th>
+                    <th data-sort="string">Parent ID Tag</th>
+                    <th data-sort="date">Expiry Date/Time</th>
+                    <th data-sort="string">In Transaction?</th>
+                    <th data-sort="string">Blocked?</th>
+                    <th>
+                        <form th:action="@{/manager/ocppTags/add}" method="get">
+                            <input type="submit" class="blueSubmit" value="Add New"/>
+                        </form>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${ocppTagList}">
+                    <td><a th:href="@{/manager/ocppTags/details/{pk}(pk=${item.ocppTagPk})}" th:text="${item.idTag}"></a></td>
+                    <td>
+                        <a th:if="${item.parentIdTag != null}" th:href="@{/manager/ocppTags/details/{pk}(pk=${item.parentOcppTagPk})}" th:text="${item.parentIdTag}"></a>
+                    </td>
+                    <td th:data-sort-value="${item.expiryDate?.time}" th:text="${item.expiryDateFormatted}"></td>
+                    <td th:text="${item.inTransaction}"></td>
+                    <td th:text="${item.blocked}"></td>
+                    <td>
+                        <form th:action="@{/manager/ocppTags/delete/{pk}(pk=${item.ocppTagPk})}" method="post">
+                            <input type="submit" class="redSubmit" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var table = $(".res").stupidtable({
+            "date": function (a, b) {
+                var aDate = (parseInt(a) || 0);
+                var bDate = (parseInt(b) || 0);
+                return aDate - bDate;
+            }
+        });
+
+        table.on("aftertablesort", function (event, data) {
+            var th = $(this).find("th");
+            th.find(".arrow").remove();
+            var dir = $.fn.stupidtable.dir;
+
+            // https://en.wikipedia.org/wiki/Geometric_Shapes
+            var arrow = data.direction === dir.ASC ? "&#9650;" : "&#9660;";
+            th.eq(data.column).append('<span class="arrow" style="float: right">' + arrow + '</span>');
+        });
+
+        $("#unknown").click(function () {
+            $("#unknownTable, #overview").slideToggle(250);
+        });
+    });
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

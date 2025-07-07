@@ -20,6 +20,9 @@ package de.rwth.idsg.steve.web.controller;
 
 import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.repository.ChargingProfileRepository;
+import de.rwth.idsg.steve.service.ChargePointHelperService;
+import de.rwth.idsg.steve.service.ChargePointServiceClient;
+import de.rwth.idsg.steve.service.OcppTagService;
 import de.rwth.idsg.steve.web.dto.ocpp.ChangeConfigurationParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ClearChargingProfileParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyEnum;
@@ -27,9 +30,10 @@ import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum;
 import de.rwth.idsg.steve.web.dto.ocpp.GetCompositeScheduleParams;
 import de.rwth.idsg.steve.web.dto.ocpp.GetConfigurationParams;
 import de.rwth.idsg.steve.web.dto.ocpp.SetChargingProfileParams;
+import de.rwth.idsg.steve.web.dto.ocpp.TriggerMessageEnum;
 import de.rwth.idsg.steve.web.dto.ocpp.TriggerMessageParams;
+import ocpp.cp._2015._10.ChargingRateUnitType;
 import ocpp.cs._2015._10.RegistrationStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -55,7 +59,7 @@ import static de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum.RW;
 @RequestMapping(value = "/manager/operations/v1.6")
 public class Ocpp16Controller extends Ocpp15Controller {
 
-    @Autowired private ChargingProfileRepository chargingProfileRepository;
+    private final ChargingProfileRepository chargingProfileRepository;
 
     // -------------------------------------------------------------------------
     // Paths
@@ -66,6 +70,33 @@ public class Ocpp16Controller extends Ocpp15Controller {
     private static final String SET_CHARGING_PATH = "/SetChargingProfile";
     private static final String TRIGGER_MESSAGE_PATH = "/TriggerMessage";
 
+    private static final List<String> SUPPORTED_OPS = Arrays.asList(
+            "ChangeAvailability",
+            "ChangeConfiguration",
+            "ClearCache",
+            "DataTransfer",
+            "GetCompositeSchedule",
+            "GetConfiguration",
+            "GetDiagnostics",
+            "GetLocalListVersion",
+            "RemoteStartTransaction",
+            "RemoteStopTransaction",
+            "ReserveNow",
+            "Reset",
+            "SendLocalList",
+            "SetChargingProfile",
+            "TriggerMessage",
+            "UnlockConnector",
+            "UpdateFirmware"
+    );
+
+    public Ocpp16Controller(ChargePointHelperService chargePointHelperService, OcppTagService ocppTagService,
+                            ChargePointServiceClient chargePointServiceClient,
+                            ChargingProfileRepository chargingProfileRepository) {
+      super(chargePointHelperService, ocppTagService, chargePointServiceClient);
+        this.chargingProfileRepository = chargingProfileRepository;
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -74,6 +105,7 @@ public class Ocpp16Controller extends Ocpp15Controller {
     protected void setCommonAttributesForTx(Model model) {
         model.addAttribute("cpList", chargePointHelperService.getChargePoints(OcppVersion.V_16));
         model.addAttribute("opVersion", "v1.6");
+        model.addAttribute("supportedOps", SUPPORTED_OPS);
     }
 
     /**
@@ -88,6 +120,7 @@ public class Ocpp16Controller extends Ocpp15Controller {
         List<RegistrationStatus> inStatusFilter = Arrays.asList(RegistrationStatus.ACCEPTED, RegistrationStatus.PENDING);
         model.addAttribute("cpList", chargePointHelperService.getChargePoints(OcppVersion.V_16, inStatusFilter));
         model.addAttribute("opVersion", "v1.6");
+        model.addAttribute("supportedOps", SUPPORTED_OPS);
     }
 
     @Override
@@ -128,6 +161,7 @@ public class Ocpp16Controller extends Ocpp15Controller {
     public String getChangeConf(Model model) {
         setCommonAttributes(model);
         model.addAttribute(PARAMS, new ChangeConfigurationParams());
+        model.addAttribute("configurationKeyTypes", ChangeConfigurationParams.ConfigurationKeyType.values());
         model.addAttribute("ocppConfKeys", getConfigurationKeys(RW));
         return getPrefix() + CHANGE_CONF_PATH;
     }
@@ -151,6 +185,7 @@ public class Ocpp16Controller extends Ocpp15Controller {
     public String getGetCompositeSchedule(Model model) {
         setCommonAttributes(model);
         model.addAttribute(PARAMS, new GetCompositeScheduleParams());
+        model.addAttribute("chargingRateUnits", ChargingRateUnitType.values());
         return getPrefix() + GET_COMPOSITE_PATH;
     }
 
@@ -174,6 +209,7 @@ public class Ocpp16Controller extends Ocpp15Controller {
     public String getTriggerMessage(Model model) {
         setCommonAttributes(model);
         model.addAttribute(PARAMS, new TriggerMessageParams());
+        model.addAttribute("triggerMessages", TriggerMessageEnum.values());
         return getPrefix() + TRIGGER_MESSAGE_PATH;
     }
 

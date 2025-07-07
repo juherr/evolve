@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Sign In')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div th:if="${param.error}" class="error">Your name or password is incorrect.</div>
+    <section><span>Sign In</span></section>
+    <form method="POST" th:action="@{/manager/signin}">
+        <table class="userInput">
+            <tr><td>Name:</td><td><input type="text" name="username" id="username" required /></td></tr>
+            <tr><td>Password:</td><td><input type="password" name="password" id="password" required /></td></tr>
+            <tr><td></td><td id="add_space"><input type="submit" value="Sign In"></td></tr>
+        </table>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    </form>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

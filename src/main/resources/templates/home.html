@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Home')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div class="tileWrapper">
+        <a class="tileRow1" th:href="@{/manager/chargepoints}">
+            Number of<br>Charge Points
+            <span class="base formatNumber" th:text="${stats.numChargeBoxes}"></span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/ocppTags}">
+            Number of<br>OCPP Tags
+            <span class="base formatNumber" th:text="${stats.numOcppTags}"></span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/users}">
+            Number of<br>Users
+            <span class="base formatNumber" th:text="${stats.numUsers}"></span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/reservations}">
+            Number of<br>Active Reservations
+            <span class="base formatNumber" th:text="${stats.numReservations}"></span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/transactions}">
+            Number of<br>Active Transactions
+            <span class="base formatNumber" th:text="${stats.numTransactions}"></span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/home/ocppJsonStatus}">
+            Number of Connected<br>JSON Charge Points
+            <span class="baseTable">
+                <span class="baseRow">
+                    <span class="baseCell">OCPP 1.2 :</span>
+                    <span class="baseCell formatNumber" th:text="${stats.numOcpp12JChargeBoxes}"></span>
+                </span>
+                <span class="baseRow">
+                    <span class="baseCell">OCPP 1.5 :</span>
+                    <span class="baseCell formatNumber" th:text="${stats.numOcpp15JChargeBoxes}"></span>
+                </span>
+                <span class="baseRow">
+                    <span class="baseCell">OCPP 1.6 :</span>
+                    <span class="baseCell formatNumber" th:text="${stats.numOcpp16JChargeBoxes}"></span>
+                </span>
+            </span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/chargepoints}">
+            Received Heartbeats
+            <span class="baseTable">
+                <span class="baseRow">
+                    <span class="baseCell">Today :</span>
+                    <span class="baseCell formatNumber" th:text="${stats.heartbeatToday}"></span>
+                </span>
+                <span class="baseRow">
+                    <span class="baseCell">Yesterday :</span>
+                    <span class="baseCell formatNumber" th:text="${stats.heartbeatYesterday}"></span>
+                </span>
+                <span class="baseRow">
+                    <span class="baseCell">Earlier :</span>
+                    <span class="baseCell formatNumber" th:text="${stats.heartbeatEarlier}"></span>
+                </span>
+            </span>
+        </a>
+        <a class="tileRow1" th:href="@{/manager/home/connectorStatus}">
+            Connector Status
+            <span class="baseTable">
+                <th:block th:each="it : ${stats.statusCountMap}">
+                    <span class="baseRow">
+                        <span class="baseCell" th:text="${it.key} + ' :'"></span>
+                        <span class="baseCell formatNumber" th:text="${it.value}"></span>
+                    </span>
+                </th:block>
+            </span>
+        </a>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

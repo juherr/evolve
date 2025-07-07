@@ -31,7 +31,6 @@ import org.jooq.Field;
 import org.jooq.Record2;
 import org.jooq.Record8;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
@@ -59,7 +58,11 @@ import static org.jooq.impl.DSL.select;
 @Repository
 public class GenericRepositoryImpl implements GenericRepository {
 
-    @Autowired private DSLContext ctx;
+    private final DSLContext ctx;
+
+    public GenericRepositoryImpl(DSLContext ctx) {
+        this.ctx = ctx;
+    }
 
     @EventListener
     public void afterStart(ContextRefreshedEvent event) {

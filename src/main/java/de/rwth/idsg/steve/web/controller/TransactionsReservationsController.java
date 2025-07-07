@@ -26,7 +26,6 @@ import de.rwth.idsg.steve.service.OcppTagService;
 import de.rwth.idsg.steve.service.TransactionStopService;
 import de.rwth.idsg.steve.web.dto.ReservationQueryForm;
 import de.rwth.idsg.steve.web.dto.TransactionQueryForm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -49,11 +48,11 @@ import java.io.IOException;
 @RequestMapping(value = "/manager", method = RequestMethod.GET)
 public class TransactionsReservationsController {
 
-    @Autowired private TransactionRepository transactionRepository;
-    @Autowired private ReservationRepository reservationRepository;
-    @Autowired private ChargePointRepository chargePointRepository;
-    @Autowired private OcppTagService ocppTagService;
-    @Autowired private TransactionStopService transactionStopService;
+    private final TransactionRepository transactionRepository;
+    private final ReservationRepository reservationRepository;
+    private final ChargePointRepository chargePointRepository;
+    private final OcppTagService ocppTagService;
+    private final TransactionStopService transactionStopService;
 
     private static final String PARAMS = "params";
 
@@ -67,6 +66,18 @@ public class TransactionsReservationsController {
     private static final String TRANSACTIONS_QUERY_PATH = "/transactions/query";
     private static final String RESERVATIONS_PATH = "/reservations";
     private static final String RESERVATIONS_QUERY_PATH = "/reservations/query";
+
+    public TransactionsReservationsController(TransactionRepository transactionRepository,
+                                              ReservationRepository reservationRepository,
+                                              ChargePointRepository chargePointRepository,
+                                              OcppTagService ocppTagService,
+                                              TransactionStopService transactionStopService) {
+        this.transactionRepository = transactionRepository;
+        this.reservationRepository = reservationRepository;
+        this.chargePointRepository = chargePointRepository;
+        this.ocppTagService = ocppTagService;
+        this.transactionStopService = transactionStopService;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods
@@ -146,11 +157,14 @@ public class TransactionsReservationsController {
     private void initList(Model model) {
         model.addAttribute("cpList", chargePointRepository.getChargeBoxIds());
         model.addAttribute("idTagList", ocppTagService.getIdTags());
+        model.addAttribute("queryTypes", TransactionQueryForm.QueryType.values());
+        model.addAttribute("queryPeriodTypes", TransactionQueryForm.QueryPeriodType.values());
     }
 
     private void initResList(Model model) {
         initList(model);
         model.addAttribute("statusList", ReservationStatus.getValues());
+        model.addAttribute("queryPeriodTypes", ReservationQueryForm.QueryPeriodType.values());
     }
 
 }

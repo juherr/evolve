@@ -25,7 +25,7 @@ import de.rwth.idsg.steve.utils.ControllerHelper;
 import de.rwth.idsg.steve.utils.mapper.UserFormMapper;
 import de.rwth.idsg.steve.web.dto.UserForm;
 import de.rwth.idsg.steve.web.dto.UserQueryForm;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.rwth.idsg.steve.web.dto.UserSex;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -44,8 +44,8 @@ import jakarta.validation.Valid;
 @RequestMapping(value = "/manager/users")
 public class UsersController {
 
-    @Autowired private OcppTagService ocppTagService;
-    @Autowired private UserRepository userRepository;
+    private final OcppTagService ocppTagService;
+    private final UserRepository userRepository;
 
     private static final String PARAMS = "params";
 
@@ -59,6 +59,11 @@ public class UsersController {
     private static final String DELETE_PATH = "/delete/{userPk}";
     private static final String UPDATE_PATH = "/update";
     private static final String ADD_PATH = "/add";
+
+    public UsersController(OcppTagService ocppTagService, UserRepository userRepository) {
+        this.ocppTagService = ocppTagService;
+        this.userRepository = userRepository;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods
@@ -130,6 +135,7 @@ public class UsersController {
 
     private void setTags(Model model) {
         model.addAttribute("countryCodes", ControllerHelper.COUNTRY_DROPDOWN);
+        model.addAttribute("sexes", UserSex.values());
         model.addAttribute("idTagList", ControllerHelper.idTagEnhancer(ocppTagService.getIdTags()));
     }
 

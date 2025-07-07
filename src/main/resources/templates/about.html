@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('About')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <section><span>About SteVe</span></section>
+    <div th:if="${releaseReport.moreRecent}" class="info">
+        A new version (<span th:text="${releaseReport.githubVersion}"></span>) is available!
+        <a target="_blank" th:href="${releaseReport.htmlUrl}">Release Info</a> -
+        <a target="_blank" th:href="${releaseReport.downloadUrl}">Download</a>
+    </div>
+    <table class="userInputFullPage">
+        <tr><td>Version:</td><td th:text="${version}"></td></tr>
+        <tr><td>Database Version:</td><td th:text="${db.version}"></td></tr>
+        <tr><td>Last Database Update:</td><td th:text="${db.updateTimestamp}"></td></tr>
+        <tr><td>Log File:</td><td th:text="${logFile}"></td></tr>
+        <tr><td>GitHub Page:</td><td><a href="https://github.com/steve-community/steve">https://github.com/steve-community/steve</a></td></tr>
+        <tr><td>System Time:</td><td th:text="${systemTime}"></td></tr>
+        <tr><td>System Time Zone:</td><td th:text="${systemTimeZone}"></td></tr>
+    </table>
+    <section><span>Endpoint Info</span></section>
+    <table class="userInputFullPage">
+        <tr>
+            <td th:text="${endpointInfo.ocppSoap.info} + ':'"></td>
+            <td>
+                <th:block th:each="i : ${endpointInfo.ocppSoap.data}">
+                    <span th:text="${i}"></span><br/>
+                </th:block>
+            </td>
+        </tr>
+        <tr>
+            <td th:text="${endpointInfo.ocppWebSocket.info} + ':'"></td>
+            <td>
+                <th:block th:each="i : ${endpointInfo.ocppWebSocket.data}">
+                    <span th:text="${i}"></span><br/>
+                </th:block>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

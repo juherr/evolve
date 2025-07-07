@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Settings')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div th:if="${#fields.hasErrors('settingsForm.*')}" class="error">
+        <ul>
+            <li th:each="err : ${#fields.errors('settingsForm.*')}" th:text="${err}"></li>
+        </ul>
+    </div>
+
+    <form th:action="@{/manager/settings}" th:object="${settingsForm}" method="post">
+
+        <section><span>OCPP Settings</span></section>
+        <table class="userInputFullPage">
+            <tr>
+                <td>Heartbeat Interval:</td>
+                <td><input type="text" th:field="*{heartbeat}"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><i>
+                    The time interval in <b>minutes</b> for how often a charge point <br/> should request the current time from SteVe.<br/>
+                    The value 0 requests clients to use reasonable default values.
+                </i></td>
+            </tr>
+            <tr>
+                <td>Expiration:</td>
+                <td><input type="text" th:field="*{expiration}"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><i>
+                    The amount of time in <b>hours</b> for how long a charge point should cache <br/> the authorization info of an
+                    idTag in its local white list, if an expiry date is not explicitly set. <br/>The value 0 disables this functionality (i.e. no expiry date will be set).
+                </i></td>
+            </tr>
+        </table>
+
+        <br/>
+
+        <section><span>
+            Mail Notification Setting
+            <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                <span>Specify the recipients of the notifications by entering one e-mail address per line</span>
+            </a>
+        </span></section>
+        <table class="userInputFullPage">
+            <tr><td>Enable Notifications?:</td><td><input type="checkbox" th:field="*{enabled}"/></td></tr>
+            <tr><td>Protocol:</td><td><input type="text" th:field="*{protocol}"/></td></tr>
+            <tr><td>Host:</td><td><input type="text" th:field="*{mailHost}"/></td></tr>
+            <tr><td>Port:</td><td><input type="text" th:field="*{port}"/></td></tr>
+            <tr><td>From:</td><td><input type="text" th:field="*{from}"/></td></tr>
+            <tr><td>User name:</td><td><input type="text" th:field="*{username}"/></td></tr>
+            <tr><td>Password:</td><td><input type="password" th:field="*{password}"/></td></tr>
+
+            <tr>
+                <td>Recipients:</td>
+                <td><textarea th:field="*{recipients}"></textarea></td>
+            </tr>
+            <tr>
+                <td>Notify when... </td>
+                <td>
+                    <th:block th:each="feature : ${features}">
+                        <input type="checkbox" th:field="*{enabledFeatures}" th:value="${feature}" />
+                        <label th:for="${#ids.prev('enabledFeatures')}" th:text="${feature.text}"></label>
+                        <br/>
+                    </th:block>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td id="add_space">
+                    <input type="submit" name="change" value="Change">
+                    <input type="submit" name="testMail" value="Send Test Mail">
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('OCPP ' + ${opVersion} + ' - Change Availability')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+<div th:replace="~{fragments/common :: bind-errors('params')}"></div>
+
+<div class="content">
+    <div th:replace="~{op-layouts/_operationLayout :: operation-layout(opVersion=${opVersion}, activePage='ChangeAvailability', pageContent=~{:: .op-content})}">
+        <div class="op-content">
+            <div th:replace="~{op-forms/_operationFragments :: change-availability-form}"></div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    $(document).ready(function() {
+        $("#chargePointSelectList").change(function() {
+            var cp = $(this).find("option:selected").text();
+            var url = /*[[@{/manager/ajax/}]]*/ '/manager/ajax/';
+            $.getJSON(url + cp + "/connectorIds", function(data) {
+                var options = "<option value='0'>Not for a specific connector</option>";
+                $.each(data, function() {
+                    options += "<option value='" + this + "'>" + this + "</option>";
+                });
+                var select = $("#connectorId");
+                select.prop("disabled", false);
+                select.html(options);
+            });
+        });
+    });
+    /*]]>*/
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
