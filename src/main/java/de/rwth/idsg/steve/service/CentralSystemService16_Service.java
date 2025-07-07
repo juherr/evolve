@@ -78,23 +78,23 @@ public class CentralSystemService16_Service {
 
     private final OcppTagService ocppTagService;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final ChargePointHelperService chargePointHelperService;
+    private final RegistrationStatusService registrationStatusService;
 
     public CentralSystemService16_Service(OcppServerRepository ocppServerRepository,
                                           SettingsRepository settingsRepository, OcppTagService ocppTagService,
                                           ApplicationEventPublisher applicationEventPublisher,
-                                          ChargePointHelperService chargePointHelperService) {
+                                          RegistrationStatusService registrationStatusService) {
         this.ocppServerRepository = ocppServerRepository;
         this.settingsRepository = settingsRepository;
         this.ocppTagService = ocppTagService;
         this.applicationEventPublisher = applicationEventPublisher;
-        this.chargePointHelperService = chargePointHelperService;
+        this.registrationStatusService = registrationStatusService;
     }
 
     public BootNotificationResponse bootNotification(BootNotificationRequest parameters, String chargeBoxIdentity,
                                                      OcppProtocol ocppProtocol) {
 
-        Optional<RegistrationStatus> status = chargePointHelperService.getRegistrationStatus(chargeBoxIdentity);
+        Optional<RegistrationStatus> status = registrationStatusService.getRegistrationStatus(chargeBoxIdentity);
         applicationEventPublisher.publishEvent(new OccpStationBooted(chargeBoxIdentity, status));
         LocalDateTime now = LocalDateTime.now();
 

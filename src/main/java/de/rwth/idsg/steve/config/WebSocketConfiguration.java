@@ -23,7 +23,7 @@ import de.rwth.idsg.steve.ocpp.ws.OcppWebSocketHandshakeHandler;
 import de.rwth.idsg.steve.ocpp.ws.ocpp12.Ocpp12WebSocketEndpoint;
 import de.rwth.idsg.steve.ocpp.ws.ocpp15.Ocpp15WebSocketEndpoint;
 import de.rwth.idsg.steve.ocpp.ws.ocpp16.Ocpp16WebSocketEndpoint;
-import de.rwth.idsg.steve.service.ChargePointHelperService;
+import de.rwth.idsg.steve.service.RegistrationStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -42,7 +42,7 @@ import java.time.Duration;
 @Slf4j
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
-    private final ChargePointHelperService chargePointHelperService;
+    private final RegistrationStatusService registrationStatusService;
 
     private final Ocpp12WebSocketEndpoint ocpp12WebSocketEndpoint;
     private final Ocpp15WebSocketEndpoint ocpp15WebSocketEndpoint;
@@ -53,11 +53,11 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
     public static final Duration IDLE_TIMEOUT = Duration.ofHours(2);
     public static final int MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
 
-    public WebSocketConfiguration(ChargePointHelperService chargePointHelperService,
+    public WebSocketConfiguration(RegistrationStatusService registrationStatusService,
                                   Ocpp12WebSocketEndpoint ocpp12WebSocketEndpoint,
                                   Ocpp15WebSocketEndpoint ocpp15WebSocketEndpoint,
                                   Ocpp16WebSocketEndpoint ocpp16WebSocketEndpoint) {
-        this.chargePointHelperService = chargePointHelperService;
+        this.registrationStatusService = registrationStatusService;
         this.ocpp12WebSocketEndpoint = ocpp12WebSocketEndpoint;
         this.ocpp15WebSocketEndpoint = ocpp15WebSocketEndpoint;
         this.ocpp16WebSocketEndpoint = ocpp16WebSocketEndpoint;
@@ -69,7 +69,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
         OcppWebSocketHandshakeHandler handshakeHandler = new OcppWebSocketHandshakeHandler(
             new DefaultHandshakeHandler(),
             Lists.newArrayList(ocpp16WebSocketEndpoint, ocpp15WebSocketEndpoint, ocpp12WebSocketEndpoint),
-            chargePointHelperService
+            registrationStatusService
         );
 
         registry.addHandler(handshakeHandler.getDummyWebSocketHandler(), PATH_INFIX + "*")

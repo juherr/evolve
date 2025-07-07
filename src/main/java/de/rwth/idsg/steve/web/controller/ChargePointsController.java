@@ -23,6 +23,7 @@ import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.repository.ChargePointRepository;
 import de.rwth.idsg.steve.repository.dto.ChargePoint;
 import de.rwth.idsg.steve.service.ChargePointHelperService;
+import de.rwth.idsg.steve.service.RegistrationStatusService;
 import de.rwth.idsg.steve.utils.ControllerHelper;
 import de.rwth.idsg.steve.utils.mapper.ChargePointDetailsMapper;
 import de.rwth.idsg.steve.web.dto.ChargePointBatchInsertForm;
@@ -54,6 +55,7 @@ public class ChargePointsController {
 
     protected final ChargePointRepository chargePointRepository;
     protected final ChargePointHelperService chargePointHelperService;
+    protected final RegistrationStatusService registrationStatusService;
 
     protected static final String PARAMS = "params";
 
@@ -86,9 +88,11 @@ public class ChargePointsController {
     protected static final String UNKNOWN_ADD_PATH = "/unknown/add/{chargeBoxId}/";
 
     public ChargePointsController(ChargePointRepository chargePointRepository,
-                                  ChargePointHelperService chargePointHelperService) {
+                                  ChargePointHelperService chargePointHelperService,
+                                  RegistrationStatusService registrationStatusService) {
         this.chargePointRepository = chargePointRepository;
         this.chargePointHelperService = chargePointHelperService;
+        this.registrationStatusService = registrationStatusService;
     }
 
     // -------------------------------------------------------------------------
@@ -110,7 +114,7 @@ public class ChargePointsController {
     private void initList(Model model, ChargePointQueryForm params) {
         model.addAttribute(PARAMS, params);
         model.addAttribute("cpList", chargePointRepository.getOverview(params));
-        model.addAttribute("unknownList", chargePointHelperService.getUnknownChargePoints());
+        model.addAttribute("unknownList", registrationStatusService.getUnknownChargePoints());
         model.addAttribute("ocppVersions", OcppVersion.values());
         model.addAttribute("queryPeriodTypes", ChargePointQueryForm.QueryPeriodType.values());
     }
@@ -206,7 +210,7 @@ public class ChargePointsController {
 
     @RequestMapping(value = UNKNOWN_REMOVE_PATH, method = RequestMethod.POST)
     public String removeUnknownChargeBoxId(@PathVariable("chargeBoxId") String chargeBoxId) {
-        chargePointHelperService.removeUnknown(Collections.singletonList(chargeBoxId));
+        registrationStatusService.removeUnknown(Collections.singletonList(chargeBoxId));
         return toOverview();
     }
 
@@ -245,11 +249,11 @@ public class ChargePointsController {
 
     private void add(ChargePointForm form) {
         chargePointRepository.addChargePoint(form);
-        chargePointHelperService.removeUnknown(Collections.singletonList(form.getChargeBoxId()));
+        registrationStatusService.removeUnknown(Collections.singletonList(form.getChargeBoxId()));
     }
 
     private void add(List<String> idList) {
         chargePointRepository.addChargePointList(idList);
-        chargePointHelperService.removeUnknown(idList);
+        registrationStatusService.removeUnknown(idList);
     }
 }
