@@ -19,6 +19,9 @@
 package de.rwth.idsg.steve.web.controller;
 
 import de.rwth.idsg.steve.ocpp.OcppVersion;
+import de.rwth.idsg.steve.service.ChargePointHelperService;
+import de.rwth.idsg.steve.service.ChargePointServiceClient;
+import de.rwth.idsg.steve.service.OcppTagService;
 import de.rwth.idsg.steve.web.dto.ocpp.CancelReservationParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyEnum;
 import de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum;
@@ -82,6 +85,11 @@ public class Ocpp15Controller extends Ocpp12Controller {
             "UnlockConnector",
             "UpdateFirmware"
     );
+
+    public Ocpp15Controller(ChargePointHelperService chargePointHelperService, OcppTagService ocppTagService,
+                            ChargePointServiceClient chargePointServiceClient) {
+        super(chargePointHelperService, ocppTagService, chargePointServiceClient);
+    }
 
     @Override
     protected void setCommonAttributes(Model model) {

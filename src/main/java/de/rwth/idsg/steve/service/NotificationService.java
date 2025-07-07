@@ -30,7 +30,6 @@ import de.rwth.idsg.steve.service.notification.OcppStationWebSocketDisconnected;
 import de.rwth.idsg.steve.service.notification.OcppTransactionEnded;
 import de.rwth.idsg.steve.service.notification.OcppTransactionStarted;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +51,11 @@ import static java.lang.String.format;
 @Service
 public class NotificationService {
 
-    @Autowired private MailService mailService;
+    private final MailService mailService;
+
+    public NotificationService(MailService mailService) {
+        this.mailService = mailService;
+    }
 
     @EventListener
     public void ocppStationBooted(OccpStationBooted notification) {

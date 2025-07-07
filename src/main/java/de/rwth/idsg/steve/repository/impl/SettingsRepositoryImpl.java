@@ -26,7 +26,6 @@ import de.rwth.idsg.steve.web.dto.SettingsForm;
 import jooq.steve.db.tables.records.SettingsRecord;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.nio.charset.StandardCharsets;
@@ -53,7 +52,11 @@ public class SettingsRepositoryImpl implements SettingsRepository {
             StandardCharsets.UTF_8
     );
 
-    @Autowired private DSLContext ctx;
+    private final DSLContext ctx;
+
+    public SettingsRepositoryImpl(DSLContext ctx) {
+        this.ctx = ctx;
+    }
 
     @Override
     public SettingsForm getForm() {

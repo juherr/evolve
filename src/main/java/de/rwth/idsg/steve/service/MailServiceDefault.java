@@ -35,7 +35,6 @@ import de.rwth.idsg.steve.config.DelegatingTaskExecutor;
 import de.rwth.idsg.steve.repository.SettingsRepository;
 import de.rwth.idsg.steve.repository.dto.MailSettings;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -46,8 +45,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailServiceDefault implements MailService {
 
-    @Autowired private SettingsRepository settingsRepository;
-    @Autowired private DelegatingTaskExecutor asyncTaskExecutor;
+    private final SettingsRepository settingsRepository;
+    private final DelegatingTaskExecutor asyncTaskExecutor;
+
+    public MailServiceDefault(SettingsRepository settingsRepository, DelegatingTaskExecutor asyncTaskExecutor) {
+        this.settingsRepository = settingsRepository;
+        this.asyncTaskExecutor = asyncTaskExecutor;
+    }
 
     @Override
     public MailSettings getSettings() {

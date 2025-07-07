@@ -44,7 +44,6 @@ import ocpp.cs._2010._08.StatusNotificationRequest;
 import ocpp.cs._2010._08.StatusNotificationResponse;
 import ocpp.cs._2010._08.StopTransactionRequest;
 import ocpp.cs._2010._08.StopTransactionResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import jakarta.jws.WebService;
@@ -71,7 +70,11 @@ import java.util.concurrent.Future;
         endpointInterface = "ocpp.cs._2010._08.CentralSystemService")
 public class CentralSystemService12_SoapServer implements CentralSystemService {
 
-    @Autowired private CentralSystemService16_Service service;
+    private final CentralSystemService16_Service service;
+
+    public CentralSystemService12_SoapServer(CentralSystemService16_Service service) {
+        this.service = service;
+    }
 
     public BootNotificationResponse bootNotificationWithTransport(BootNotificationRequest parameters,
                                                                   String chargeBoxIdentity, OcppProtocol protocol) {

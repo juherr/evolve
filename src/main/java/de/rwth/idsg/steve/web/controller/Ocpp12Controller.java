@@ -35,7 +35,6 @@ import de.rwth.idsg.steve.web.dto.ocpp.ResetParams;
 import de.rwth.idsg.steve.web.dto.ocpp.ResetType;
 import de.rwth.idsg.steve.web.dto.ocpp.UnlockConnectorParams;
 import de.rwth.idsg.steve.web.dto.ocpp.UpdateFirmwareParams;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -59,9 +58,9 @@ import static de.rwth.idsg.steve.web.dto.ocpp.ConfigurationKeyReadWriteEnum.RW;
 @RequestMapping(value = "/manager/operations/v1.2")
 public class Ocpp12Controller {
 
-    @Autowired protected ChargePointHelperService chargePointHelperService;
-    @Autowired protected OcppTagService ocppTagService;
-    @Autowired protected ChargePointServiceClient chargePointServiceClient;
+    protected final ChargePointHelperService chargePointHelperService;
+    protected final OcppTagService ocppTagService;
+    protected final ChargePointServiceClient chargePointServiceClient;
 
     protected static final String PARAMS = "params";
 
@@ -92,6 +91,13 @@ public class Ocpp12Controller {
             "UnlockConnector",
             "UpdateFirmware"
     );
+
+    public Ocpp12Controller(ChargePointHelperService chargePointHelperService, OcppTagService ocppTagService,
+                            ChargePointServiceClient chargePointServiceClient) {
+        this.chargePointHelperService = chargePointHelperService;
+        this.ocppTagService = ocppTagService;
+        this.chargePointServiceClient = chargePointServiceClient;
+    }
 
     // -------------------------------------------------------------------------
     // Helpers

@@ -29,7 +29,6 @@ import de.rwth.idsg.steve.web.dto.ChargePointBatchInsertForm;
 import de.rwth.idsg.steve.web.dto.ChargePointForm;
 import de.rwth.idsg.steve.web.dto.ChargePointQueryForm;
 import jooq.steve.db.tables.records.ChargeBoxRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -53,8 +52,8 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/manager/chargepoints")
 public class ChargePointsController {
 
-    @Autowired protected ChargePointRepository chargePointRepository;
-    @Autowired protected ChargePointHelperService chargePointHelperService;
+    protected final ChargePointRepository chargePointRepository;
+    protected final ChargePointHelperService chargePointHelperService;
 
     protected static final String PARAMS = "params";
 
@@ -85,6 +84,12 @@ public class ChargePointsController {
     // Solution: https://stackoverflow.com/a/18378817
     protected static final String UNKNOWN_REMOVE_PATH = "/unknown/remove/{chargeBoxId}/";
     protected static final String UNKNOWN_ADD_PATH = "/unknown/add/{chargeBoxId}/";
+
+    public ChargePointsController(ChargePointRepository chargePointRepository,
+                                  ChargePointHelperService chargePointHelperService) {
+        this.chargePointRepository = chargePointRepository;
+        this.chargePointHelperService = chargePointHelperService;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods

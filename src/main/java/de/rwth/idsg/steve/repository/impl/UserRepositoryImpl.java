@@ -37,7 +37,6 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -55,8 +54,13 @@ import static jooq.steve.db.tables.User.USER;
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-    @Autowired private DSLContext ctx;
-    @Autowired private AddressRepository addressRepository;
+    private final DSLContext ctx;
+    private final AddressRepository addressRepository;
+
+    public UserRepositoryImpl(DSLContext ctx, AddressRepository addressRepository) {
+        this.ctx = ctx;
+        this.addressRepository = addressRepository;
+    }
 
     @Override
     public List<User.Overview> getOverview(UserQueryForm form) {

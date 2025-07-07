@@ -22,7 +22,6 @@ import de.rwth.idsg.steve.SteveException;
 import de.rwth.idsg.steve.repository.ChargingProfileRepository;
 import de.rwth.idsg.steve.repository.dto.ChargingProfile;
 import de.rwth.idsg.steve.repository.dto.ChargingProfileAssignment;
-import de.rwth.idsg.steve.utils.DateTimeUtils;
 import de.rwth.idsg.steve.web.dto.ChargingProfileAssignmentQueryForm;
 import de.rwth.idsg.steve.web.dto.ChargingProfileForm;
 import de.rwth.idsg.steve.web.dto.ChargingProfileQueryForm;
@@ -38,7 +37,6 @@ import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -60,7 +58,11 @@ import static jooq.steve.db.tables.ChargeBox.CHARGE_BOX;
 @Repository
 public class ChargingProfileRepositoryImpl implements ChargingProfileRepository {
 
-    @Autowired private DSLContext ctx;
+    private final DSLContext ctx;
+
+    public ChargingProfileRepositoryImpl(DSLContext ctx) {
+        this.ctx = ctx;
+    }
 
     // -------------------------------------------------------------------------
     // OCPP operations

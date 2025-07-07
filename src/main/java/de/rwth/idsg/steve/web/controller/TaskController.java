@@ -25,7 +25,6 @@ import de.rwth.idsg.steve.ocpp.task.GetCompositeScheduleTask;
 import de.rwth.idsg.steve.ocpp.task.GetConfigurationTask;
 import de.rwth.idsg.steve.repository.TaskStore;
 import ocpp.cp._2015._10.GetCompositeScheduleResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RequestMapping(value = "/manager/operations/tasks")
 public class TaskController {
 
-    @Autowired private TaskStore taskStore;
+    private final TaskStore taskStore;
 
     // -------------------------------------------------------------------------
     // Paths
@@ -48,6 +47,10 @@ public class TaskController {
 
     private static final String TASK_ID_PATH = "/{taskId}";
     private static final String TASK_DETAILS_PATH = TASK_ID_PATH + "/details/{chargeBoxId}/";
+
+    public TaskController(TaskStore taskStore) {
+        this.taskStore = taskStore;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods

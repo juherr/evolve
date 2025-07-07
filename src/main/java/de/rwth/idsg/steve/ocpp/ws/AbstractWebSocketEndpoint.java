@@ -29,7 +29,6 @@ import de.rwth.idsg.steve.ocpp.ws.pipeline.IncomingPipeline;
 import de.rwth.idsg.steve.repository.OcppServerRepository;
 import de.rwth.idsg.steve.service.notification.OcppStationWebSocketConnected;
 import de.rwth.idsg.steve.service.notification.OcppStationWebSocketDisconnected;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
@@ -55,10 +54,10 @@ import java.util.function.Consumer;
  */
 public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandler implements SubProtocolCapable {
 
-    @Autowired private DelegatingTaskScheduler asyncTaskScheduler;
-    @Autowired private OcppServerRepository ocppServerRepository;
-    @Autowired private FutureResponseContextStore futureResponseContextStore;
-    @Autowired private ApplicationEventPublisher applicationEventPublisher;
+    private final DelegatingTaskScheduler asyncTaskScheduler;
+    private final OcppServerRepository ocppServerRepository;
+    private final FutureResponseContextStore futureResponseContextStore;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public static final String CHARGEBOX_ID_KEY = "CHARGEBOX_ID_KEY";
 
@@ -68,6 +67,17 @@ public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandl
     private final Object sessionContextLock = new Object();
 
     private IncomingPipeline pipeline;
+
+    protected AbstractWebSocketEndpoint(DelegatingTaskScheduler asyncTaskScheduler,
+                                        OcppServerRepository ocppServerRepository,
+                                        FutureResponseContextStore futureResponseContextStore,
+                                        ApplicationEventPublisher applicationEventPublisher
+    ) {
+        this.asyncTaskScheduler = asyncTaskScheduler;
+        this.ocppServerRepository = ocppServerRepository;
+        this.futureResponseContextStore = futureResponseContextStore;
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
 
     public abstract OcppVersion getVersion();
 

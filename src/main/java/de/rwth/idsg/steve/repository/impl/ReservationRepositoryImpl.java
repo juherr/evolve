@@ -35,7 +35,6 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -56,7 +55,6 @@ public class ReservationRepositoryImpl implements ReservationRepository {
 
     private final DSLContext ctx;
 
-    @Autowired
     public ReservationRepositoryImpl(DSLContext ctx) {
         this.ctx = ctx;
     }

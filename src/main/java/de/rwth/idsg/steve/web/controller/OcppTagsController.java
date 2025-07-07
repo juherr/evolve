@@ -25,7 +25,6 @@ import de.rwth.idsg.steve.web.dto.OcppTagBatchInsertForm;
 import de.rwth.idsg.steve.web.dto.OcppTagForm;
 import de.rwth.idsg.steve.web.dto.OcppTagQueryForm;
 import jooq.steve.db.tables.records.OcppTagActivityRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -36,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import jakarta.validation.Valid;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Sevket Goekay <sevketgokay@gmail.com>
@@ -46,7 +44,7 @@ import java.util.List;
 @RequestMapping(value = "/manager/ocppTags")
 public class OcppTagsController {
 
-    @Autowired protected OcppTagService ocppTagService;
+    protected final OcppTagService ocppTagService;
 
     protected static final String PARAMS = "params";
 
@@ -66,6 +64,10 @@ public class OcppTagsController {
 
     protected static final String UNKNOWN_REMOVE_PATH = "/unknown/remove/{idTag}/";
     protected static final String UNKNOWN_ADD_PATH = "/unknown/add/{idTag}/";
+
+    public OcppTagsController(OcppTagService ocppTagService) {
+        this.ocppTagService = ocppTagService;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods

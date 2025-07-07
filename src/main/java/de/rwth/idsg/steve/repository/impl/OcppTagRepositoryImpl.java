@@ -35,7 +35,6 @@ import org.jooq.Result;
 import org.jooq.SelectQuery;
 import org.jooq.TableField;
 import org.jooq.exception.DataAccessException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -59,7 +58,6 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
 
     private final DSLContext ctx;
 
-    @Autowired
     public OcppTagRepositoryImpl(DSLContext ctx) {
         this.ctx = ctx;
     }

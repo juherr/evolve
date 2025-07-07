@@ -29,7 +29,6 @@ import ocpp.cp._2015._10.ChargingProfileKindType;
 import ocpp.cp._2015._10.ChargingProfilePurposeType;
 import ocpp.cp._2015._10.ChargingRateUnitType;
 import ocpp.cp._2015._10.RecurrencyKindType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -48,8 +47,8 @@ import jakarta.validation.Valid;
 @RequestMapping(value = "/manager/chargingProfiles")
 public class ChargingProfilesController {
 
-    @Autowired private ChargePointRepository chargePointRepository;
-    @Autowired private ChargingProfileRepository repository;
+    private final ChargePointRepository chargePointRepository;
+    private final ChargingProfileRepository repository;
 
     private static final String PARAMS = "params";
 
@@ -65,6 +64,12 @@ public class ChargingProfilesController {
     private static final String ADD_PATH = "/add";
 
     private static final String ASSIGNMENTS_PATH = "/assignments";
+
+    public ChargingProfilesController(ChargePointRepository chargePointRepository,
+                                      ChargingProfileRepository repository) {
+        this.chargePointRepository = chargePointRepository;
+        this.repository = repository;
+    }
 
     // -------------------------------------------------------------------------
     // HTTP methods

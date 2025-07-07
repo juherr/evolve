@@ -37,7 +37,6 @@ import org.jooq.Record9;
 import org.jooq.RecordMapper;
 import org.jooq.SelectQuery;
 import org.jooq.Table;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.Writer;
@@ -64,7 +63,6 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     private final DSLContext ctx;
 
-    @Autowired
     public TransactionRepositoryImpl(DSLContext ctx) {
         this.ctx = ctx;
     }
