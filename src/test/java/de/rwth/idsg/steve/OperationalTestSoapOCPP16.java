@@ -87,7 +87,7 @@ public class OperationalTestSoapOCPP16 {
         Assertions.assertTrue(List.of(ApplicationProfile.TEST, ApplicationProfile.DEV)
             .contains(SteveConfiguration.CONFIG.getProfile()));
 
-        app = new Application();
+        app = new Application(SteveConfiguration.CONFIG);
         app.start();
     }
 

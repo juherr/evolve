@@ -61,7 +61,7 @@ public class ApplicationTest {
             .contains(SteveConfiguration.CONFIG.getProfile()));
         __DatabasePreparer__.prepare();
 
-        app = new Application();
+        app = new Application(SteveConfiguration.CONFIG);
         app.start();
     }
 
