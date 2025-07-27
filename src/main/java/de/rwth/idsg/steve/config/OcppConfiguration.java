@@ -18,6 +18,7 @@
  */
 package de.rwth.idsg.steve.config;
 
+import de.rwth.idsg.steve.SteveConfiguration;
 import de.rwth.idsg.steve.ocpp.soap.LoggingFeatureProxy;
 import de.rwth.idsg.steve.ocpp.soap.MediatorInInterceptor;
 import de.rwth.idsg.steve.ocpp.soap.MessageIdInterceptor;
@@ -40,7 +41,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -57,6 +57,7 @@ public class OcppConfiguration {
         LogUtils.setLoggerClass(Slf4jLogger.class);
     }
 
+    private final SteveConfiguration config;
     private final ocpp.cs._2010._08.CentralSystemService ocpp12Server;
     private final ocpp.cs._2012._06.CentralSystemService ocpp15Server;
     private final ocpp.cs._2015._10.CentralSystemService ocpp16Server;
@@ -66,7 +67,9 @@ public class OcppConfiguration {
     public OcppConfiguration(CentralSystemService ocpp12Server, ocpp.cs._2012._06.CentralSystemService ocpp15Server,
                              ocpp.cs._2015._10.CentralSystemService ocpp16Server,
                              @Qualifier("MessageHeaderInterceptor")
-                             PhaseInterceptor<Message> messageHeaderInterceptor) {
+                             PhaseInterceptor<Message> messageHeaderInterceptor,
+                             SteveConfiguration config) {
+        this.config = config;
         this.ocpp12Server = ocpp12Server;
         this.ocpp15Server = ocpp15Server;
         this.ocpp16Server = ocpp16Server;
@@ -86,7 +89,7 @@ public class OcppConfiguration {
         // one to be created, since in MediatorInInterceptor we go over created/registered services and build a map.
         //
         List<Interceptor<? extends Message>> mediator = singletonList(new MediatorInInterceptor(springBus()));
-        createOcppService(ocpp12Server, CONFIG.getRouterEndpointPath(), mediator, Collections.emptyList());
+        createOcppService(ocpp12Server, config.getRouterEndpointPath(), mediator, Collections.emptyList());
     }
 
     @Bean(name = Bus.DEFAULT_BUS_ID, destroyMethod = "shutdown")
