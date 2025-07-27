@@ -23,6 +23,7 @@ import de.rwth.idsg.steve.ocpp.ws.custom.WsSessionSelectStrategyEnum;
 import de.rwth.idsg.steve.utils.PropertiesFileLoader;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -58,7 +59,8 @@ public enum SteveConfiguration {
     private final Ocpp ocpp;
     private final Auth auth;
     private final WebApi webApi;
-    private final DB db;
+    @Setter
+    private DB db;
     private final Jetty jetty;
 
     SteveConfiguration() {

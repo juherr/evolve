@@ -53,7 +53,8 @@ public class Issue73Fix {
     private static final String path = getPath();
 
     public static void main(String[] args) throws Exception {
-        Assertions.assertEquals(ApplicationProfile.TEST, SteveConfiguration.CONFIG.getProfile());
+        Assertions.assertTrue(List.of(ApplicationProfile.TEST, ApplicationProfile.DEV)
+            .contains(SteveConfiguration.CONFIG.getProfile()));
         Assertions.assertTrue(SteveConfiguration.CONFIG.getOcpp().isAutoRegisterUnknownStations());
 
         __DatabasePreparer__.prepare();

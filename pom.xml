@@ -80,7 +80,7 @@
             <id>dev</id>
             <properties>
                 <envName>dev</envName>
-                <skipTests>true</skipTests>
+                <skipTests>false</skipTests>
             </properties>
         </profile>
         <profile>
@@ -110,6 +110,7 @@
                 <includes>
                     <include>static/**</include>
                     <include>templates/**</include>
+                    <include>db/migration/**</include>
                 </includes>
             </resource>
         </resources>
@@ -867,6 +868,18 @@
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
             <version>2.9.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <version>1.20.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>${flyway.version}</version>
             <scope>test</scope>
         </dependency>
 

@@ -84,7 +84,8 @@ public class OperationalTestSoapOCPP16 {
 
     @BeforeAll
     public static void initClass() throws Exception {
-        Assertions.assertEquals(ApplicationProfile.TEST, SteveConfiguration.CONFIG.getProfile());
+        Assertions.assertTrue(List.of(ApplicationProfile.TEST, ApplicationProfile.DEV)
+            .contains(SteveConfiguration.CONFIG.getProfile()));
 
         app = new Application();
         app.start();
