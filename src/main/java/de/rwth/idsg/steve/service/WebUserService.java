@@ -67,6 +67,7 @@ public class WebUserService implements UserDetailsManager {
     // Because Guava's cache does not accept a null value
     private static final UserDetails DUMMY_USER = new User("#", "#", Collections.emptyList());
 
+    private final SteveConfiguration config;
     private final ObjectMapper jacksonObjectMapper;
     private final WebUserRepository webUserRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy = getContextHolderStrategy();
@@ -82,15 +83,15 @@ public class WebUserService implements UserDetailsManager {
             return;
         }
 
-        var headerVal = SteveConfiguration.CONFIG.getWebApi().getHeaderValue();
+        var headerVal = config.getWebApi().getHeaderValue();
 
         var encodedApiPassword = StringUtils.isEmpty(headerVal)
             ? null
-            : SteveConfiguration.CONFIG.getAuth().getPasswordEncoder().encode(headerVal);
+            : config.getAuth().getPasswordEncoder().encode(headerVal);
 
         var user = new WebUserRecord()
-            .setUsername(SteveConfiguration.CONFIG.getAuth().getUserName())
-            .setPassword(SteveConfiguration.CONFIG.getAuth().getEncodedPassword())
+            .setUsername(config.getAuth().getUserName())
+            .setPassword(config.getAuth().getEncodedPassword())
             .setApiPassword(encodedApiPassword)
             .setEnabled(true)
             .setAuthorities(toJson(AuthorityUtils.createAuthorityList("ADMIN")));

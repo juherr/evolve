@@ -107,7 +107,8 @@ public class __DatabasePreparer__ {
             dataSource = beanConfiguration.dataSource(
                 MYSQL_CONTAINER.getJdbcUrl(),
                 MYSQL_CONTAINER.getUsername(),
-                MYSQL_CONTAINER.getPassword()
+                MYSQL_CONTAINER.getPassword(),
+                "UTC"
             );
             var flyway = Flyway.configure()
                 .dataSource(dataSource)

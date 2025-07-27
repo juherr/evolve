@@ -42,6 +42,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -65,8 +66,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 
 import javax.sql.DataSource;
 import java.util.List;
-
-import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
+import java.util.Properties;
 
 /**
  * Configuration and beans of Spring Framework.
@@ -93,12 +93,13 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
      */
     @Bean
     public DataSource dataSource() {
-        SteveConfiguration.DB dbConfig = CONFIG.getDb();
+        SteveConfiguration config = steveConfiguration();
+        SteveConfiguration.DB dbConfig = config.getDb();
         var dbUrl = "jdbc:mysql://" + dbConfig.getIp() + ":" + dbConfig.getPort() + "/" + dbConfig.getSchema();
-        return dataSource(dbUrl, dbConfig.getUserName(), dbConfig.getPassword());
+        return dataSource(dbUrl, dbConfig.getUserName(), dbConfig.getPassword(), config.getTimeZoneId());
     }
 
-    public DataSource dataSource(String dbUrl, String dbUserName, String dbPassword) {
+    public DataSource dataSource(String dbUrl, String dbUserName, String dbPassword, String dbTimeZoneId) {
         HikariConfig hc = new HikariConfig();
 
         // set standard params
@@ -112,7 +113,7 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
         hc.addDataSourceProperty(PropertyKey.prepStmtCacheSize.getKeyName(), 250);
         hc.addDataSourceProperty(PropertyKey.prepStmtCacheSqlLimit.getKeyName(), 2048);
         hc.addDataSourceProperty(PropertyKey.characterEncoding.getKeyName(), "utf8");
-        hc.addDataSourceProperty(PropertyKey.connectionTimeZone.getKeyName(), CONFIG.getTimeZoneId());
+        hc.addDataSourceProperty(PropertyKey.connectionTimeZone.getKeyName(), dbTimeZoneId);
         hc.addDataSourceProperty(PropertyKey.useSSL.getKeyName(), true);
 
         // https://github.com/steve-community/steve/issues/736
@@ -142,7 +143,7 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
                 // operations. We do not use or need that.
                 .withAttachRecords(false)
                 // To log or not to log the sql queries, that is the question
-                .withExecuteLogging(CONFIG.getDb().isSqlLogging());
+                .withExecuteLogging(steveConfiguration().getDb().isSqlLogging());
 
         // Configuration for JOOQ
         org.jooq.Configuration conf = new DefaultConfiguration()
@@ -190,8 +191,9 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
      */
     @Bean
     public ReleaseCheckService releaseCheckService() {
-        if (InternetChecker.isInternetAvailable()) {
-            return new GithubReleaseCheckService();
+        var config = steveConfiguration();
+        if (InternetChecker.isInternetAvailable(config.getSteveCompositeVersion())) {
+            return new GithubReleaseCheckService(config);
         } else {
             return new DummyReleaseCheckService();
         }
@@ -296,5 +298,24 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
             .findAny()
             .map(conv -> ((MappingJackson2HttpMessageConverter) conv).getObjectMapper())
             .orElseThrow(() -> new RuntimeException("There is no MappingJackson2HttpMessageConverter in Spring context"));
+    }
+
+    @Bean
+    public SteveConfiguration steveConfiguration() {
+        return SteveConfiguration.CONFIG;
+    }
+
+    @Bean
+    public PropertySourcesPlaceholderConfigurer valueConfigurer() {
+        var configurer = new PropertySourcesPlaceholderConfigurer();
+
+        var props = new Properties();
+        var chargeBoxIdValidationRegex = steveConfiguration().getOcpp().getChargeBoxIdValidationRegex();
+        if (chargeBoxIdValidationRegex != null) {
+          props.put("charge-box-id.validation.regex", chargeBoxIdValidationRegex);
+        }
+        configurer.setProperties(props);
+
+        return configurer;
     }
 }

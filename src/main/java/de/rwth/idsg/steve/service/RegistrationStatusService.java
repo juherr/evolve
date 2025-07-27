@@ -19,6 +19,7 @@
 package de.rwth.idsg.steve.service;
 
 import com.google.common.util.concurrent.Striped;
+import de.rwth.idsg.steve.SteveConfiguration;
 import de.rwth.idsg.steve.repository.ChargePointRepository;
 import de.rwth.idsg.steve.service.dto.UnidentifiedIncomingObject;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +31,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
-import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
-
 @Slf4j
 @Service
 public class RegistrationStatusService {
-    private final boolean autoRegisterUnknownStations = CONFIG.getOcpp().isAutoRegisterUnknownStations();
+    private final boolean autoRegisterUnknownStations;
 
     private final Striped<Lock> isRegisteredLocks = Striped.lock(16);
     private final UnidentifiedIncomingObjectService unknownChargePointService = new UnidentifiedIncomingObjectService(100);
@@ -43,8 +42,9 @@ public class RegistrationStatusService {
     // SOAP-based charge points are stored in DB with an endpoint address
     private final ChargePointRepository chargePointRepository;
 
-    public RegistrationStatusService(ChargePointRepository chargePointRepository) {
+    public RegistrationStatusService(ChargePointRepository chargePointRepository, SteveConfiguration config) {
         this.chargePointRepository = chargePointRepository;
+        this.autoRegisterUnknownStations = config.getOcpp().isAutoRegisterUnknownStations();
     }
 
     public List<UnidentifiedIncomingObject> getUnknownChargePoints() {

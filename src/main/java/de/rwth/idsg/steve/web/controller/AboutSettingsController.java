@@ -19,6 +19,7 @@
 package de.rwth.idsg.steve.web.controller;
 
 import de.rwth.idsg.steve.NotificationFeature;
+import de.rwth.idsg.steve.SteveConfiguration;
 import de.rwth.idsg.steve.repository.GenericRepository;
 import de.rwth.idsg.steve.repository.SettingsRepository;
 import de.rwth.idsg.steve.service.MailService;
@@ -37,8 +38,6 @@ import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
-
 /**
  * One controller for about and settings pages
  *
@@ -53,6 +52,7 @@ public class AboutSettingsController {
     private final SettingsRepository settingsRepository;
     private final MailService mailService;
     private final ReleaseCheckService releaseCheckService;
+    private final SteveConfiguration config;
 
     // -------------------------------------------------------------------------
     // Paths
@@ -63,12 +63,13 @@ public class AboutSettingsController {
 
     public AboutSettingsController(GenericRepository genericRepository, LogController logController,
                                    SettingsRepository settingsRepository, MailService mailService,
-                                   ReleaseCheckService releaseCheckService) {
+                                   ReleaseCheckService releaseCheckService, SteveConfiguration config) {
         this.genericRepository = genericRepository;
         this.logController = logController;
         this.settingsRepository = settingsRepository;
         this.mailService = mailService;
         this.releaseCheckService = releaseCheckService;
+        this.config = config;
     }
 
     // -------------------------------------------------------------------------
@@ -77,7 +78,7 @@ public class AboutSettingsController {
 
     @RequestMapping(value = ABOUT_PATH, method = RequestMethod.GET)
     public String getAbout(Model model) {
-        model.addAttribute("version", CONFIG.getSteveVersion());
+        model.addAttribute("version", config.getSteveVersion());
         model.addAttribute("db", genericRepository.getDBVersion());
         model.addAttribute("logFile", logController.getLogFilePath());
         model.addAttribute("systemTime", LocalDateTime.now());

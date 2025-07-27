@@ -24,6 +24,8 @@ import de.rwth.idsg.steve.ocpp.ws.ocpp12.Ocpp12WebSocketEndpoint;
 import de.rwth.idsg.steve.ocpp.ws.ocpp15.Ocpp15WebSocketEndpoint;
 import de.rwth.idsg.steve.ocpp.ws.ocpp16.Ocpp16WebSocketEndpoint;
 import de.rwth.idsg.steve.service.RegistrationStatusService;
+import de.rwth.idsg.steve.web.validation.ChargeBoxIdValidator;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -39,34 +41,26 @@ import java.time.Duration;
  */
 @EnableWebSocket
 @Configuration
+@AllArgsConstructor
 @Slf4j
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
     private final RegistrationStatusService registrationStatusService;
-
     private final Ocpp12WebSocketEndpoint ocpp12WebSocketEndpoint;
     private final Ocpp15WebSocketEndpoint ocpp15WebSocketEndpoint;
     private final Ocpp16WebSocketEndpoint ocpp16WebSocketEndpoint;
+    private final ChargeBoxIdValidator chargeBoxIdValidator;
 
     public static final String PATH_INFIX = "/websocket/CentralSystemService/";
     public static final Duration PING_INTERVAL = Duration.ofMinutes(15);
     public static final Duration IDLE_TIMEOUT = Duration.ofHours(2);
     public static final int MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
 
-    public WebSocketConfiguration(RegistrationStatusService registrationStatusService,
-                                  Ocpp12WebSocketEndpoint ocpp12WebSocketEndpoint,
-                                  Ocpp15WebSocketEndpoint ocpp15WebSocketEndpoint,
-                                  Ocpp16WebSocketEndpoint ocpp16WebSocketEndpoint) {
-        this.registrationStatusService = registrationStatusService;
-        this.ocpp12WebSocketEndpoint = ocpp12WebSocketEndpoint;
-        this.ocpp15WebSocketEndpoint = ocpp15WebSocketEndpoint;
-        this.ocpp16WebSocketEndpoint = ocpp16WebSocketEndpoint;
-    }
-
-  @Override
+    @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 
         OcppWebSocketHandshakeHandler handshakeHandler = new OcppWebSocketHandshakeHandler(
+            chargeBoxIdValidator,
             new DefaultHandshakeHandler(),
             Lists.newArrayList(ocpp16WebSocketEndpoint, ocpp15WebSocketEndpoint, ocpp12WebSocketEndpoint),
             registrationStatusService
