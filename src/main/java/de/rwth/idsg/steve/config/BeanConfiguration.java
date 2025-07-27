@@ -95,8 +95,8 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
     public DataSource dataSource() {
         SteveConfiguration config = steveConfiguration();
         SteveConfiguration.DB dbConfig = config.getDb();
-        var dbUrl = "jdbc:mysql://" + dbConfig.getIp() + ":" + dbConfig.getPort() + "/" + dbConfig.getSchema();
-        return dataSource(dbUrl, dbConfig.getUserName(), dbConfig.getPassword(), config.getTimeZoneId());
+        return dataSource(dbConfig.getJdbcUrl(), dbConfig.getUserName(), dbConfig.getPassword(),
+            config.getTimeZoneId());
     }
 
     public DataSource dataSource(String dbUrl, String dbUserName, String dbPassword, String dbTimeZoneId) {
