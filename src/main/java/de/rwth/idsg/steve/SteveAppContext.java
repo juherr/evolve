@@ -42,7 +42,6 @@ import java.net.URL;
 import java.util.EnumSet;
 import java.util.HashSet;
 
-import static de.rwth.idsg.steve.SteveConfiguration.CONFIG;
 import static de.rwth.idsg.steve.config.WebSocketConfiguration.IDLE_TIMEOUT;
 import static de.rwth.idsg.steve.config.WebSocketConfiguration.MAX_MSG_SIZE;
 
@@ -52,10 +51,12 @@ import static de.rwth.idsg.steve.config.WebSocketConfiguration.MAX_MSG_SIZE;
  */
 public class SteveAppContext {
 
+    private final SteveConfiguration config;
     private final AnnotationConfigWebApplicationContext springContext;
     private final WebAppContext webAppContext;
 
-    public SteveAppContext() {
+    public SteveAppContext(SteveConfiguration config) {
+        this.config = config;
         springContext = new AnnotationConfigWebApplicationContext();
         springContext.scan("de.rwth.idsg.steve.config");
         webAppContext = initWebApp();
@@ -78,7 +79,7 @@ public class SteveAppContext {
     }
 
     private Handler getWebApp() {
-        if (!CONFIG.getJetty().isGzipEnabled()) {
+        if (!config.getJetty().isGzipEnabled()) {
             return webAppContext;
         }
 
@@ -89,7 +90,7 @@ public class SteveAppContext {
 
     private WebAppContext initWebApp() {
         WebAppContext ctx = new WebAppContext();
-        ctx.setContextPath(CONFIG.getContextPath());
+        ctx.setContextPath(config.getContextPath());
 
         // if during startup an exception happens, do not swallow it, throw it
         ctx.setThrowUnavailableOnStartupException(true);
@@ -110,14 +111,14 @@ public class SteveAppContext {
         ServletHolder cxf = new ServletHolder("cxf", new CXFServlet());
 
         ctx.addEventListener(new ContextLoaderListener(springContext));
-        ctx.addServlet(web, CONFIG.getSpringMapping());
-        ctx.addServlet(cxf, CONFIG.getCxfMapping() + "/*");
+        ctx.addServlet(web, config.getSpringMapping());
+        ctx.addServlet(cxf, config.getCxfMapping() + "/*");
 
         // add spring security
         ctx.addFilter(
             // The bean name is not arbitrary, but is as expected by Spring
             new FilterHolder(new DelegatingFilterProxy(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME)),
-            CONFIG.getSpringMapping() + "*",
+            config.getSpringMapping() + "*",
             EnumSet.allOf(DispatcherType.class)
         );
 
@@ -130,14 +131,14 @@ public class SteveAppContext {
             RedirectPatternRule rule = new RedirectPatternRule();
             rule.setTerminating(true);
             rule.setPattern(redirect);
-            rule.setLocation(CONFIG.getContextPath() + "/manager/home");
+            rule.setLocation(config.getContextPath() + "/manager/home");
             rewrite.addRule(rule);
         }
         return rewrite;
     }
 
     private HashSet<String> getRedirectSet() {
-        String path = CONFIG.getContextPath();
+        String path = config.getContextPath();
 
         HashSet<String> redirectSet = new HashSet<>(3);
         redirectSet.add("");
