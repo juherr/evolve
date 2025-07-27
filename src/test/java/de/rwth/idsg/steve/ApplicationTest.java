@@ -34,6 +34,8 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.xml.ws.WebServiceException;
 
+import java.util.List;
+
 import static de.rwth.idsg.steve.utils.Helpers.getForOcpp12;
 import static de.rwth.idsg.steve.utils.Helpers.getForOcpp15;
 import static de.rwth.idsg.steve.utils.Helpers.getForOcpp16;
@@ -55,7 +57,8 @@ public class ApplicationTest {
 
     @BeforeAll
     public static void init() throws Exception {
-        Assertions.assertEquals(ApplicationProfile.TEST, SteveConfiguration.CONFIG.getProfile());
+        Assertions.assertTrue(List.of(ApplicationProfile.TEST, ApplicationProfile.DEV)
+            .contains(SteveConfiguration.CONFIG.getProfile()));
         __DatabasePreparer__.prepare();
 
         app = new Application();

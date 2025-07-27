@@ -19,6 +19,8 @@
 package de.rwth.idsg.steve.utils;
 
 import com.google.common.collect.Sets;
+import de.rwth.idsg.steve.ApplicationProfile;
+import de.rwth.idsg.steve.SteveConfiguration;
 import de.rwth.idsg.steve.config.BeanConfiguration;
 import de.rwth.idsg.steve.repository.dto.ChargePoint;
 import de.rwth.idsg.steve.repository.dto.ConnectorStatus;
@@ -39,17 +41,23 @@ import jooq.steve.db.tables.SchemaVersion;
 import jooq.steve.db.tables.Settings;
 import jooq.steve.db.tables.records.OcppTagActivityRecord;
 import jooq.steve.db.tables.records.TransactionRecord;
+import org.flywaydb.core.Flyway;
 import org.jooq.DSLContext;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.testcontainers.containers.MySQLContainer;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static jooq.steve.db.tables.ChargeBox.CHARGE_BOX;
@@ -71,10 +79,61 @@ public class __DatabasePreparer__ {
     private static final String REGISTERED_CHARGE_BOX_ID_2 = "charge_box_2aa6a783d47d_2";
     private static final String REGISTERED_OCPP_TAG = "id_tag_2aa6a783d47d";
 
-    private static final BeanConfiguration beanConfiguration = new BeanConfiguration();
-    private static final DSLContext dslContext = beanConfiguration.dslContext(beanConfiguration.dataSource());
+    private static final Schema SCHEMA = DefaultCatalog.DEFAULT_CATALOG.getSchemas()
+        .stream()
+        .filter(s -> {
+            if (SteveConfiguration.CONFIG.getProfile() == ApplicationProfile.DEV) {
+                return true;
+            }
+            return s.getName().equals(SCHEMA_TO_TRUNCATE);
+        })
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("Could not find schema"));
+
+    private static final MySQLContainer<?> MYSQL_CONTAINER = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName(SCHEMA.getName())
+            .withUsername("root")
+            .withPassword("root")
+            .withEnv("MYSQL_ROOT_PASSWORD", "root");
+
+    private static DSLContext dslContext;
 
     public static void prepare() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        var beanConfiguration = new BeanConfiguration();
+        DataSource dataSource;
+        if (SteveConfiguration.CONFIG.getProfile() == ApplicationProfile.DEV) {
+            MYSQL_CONTAINER.start();
+            dataSource = beanConfiguration.dataSource(
+                MYSQL_CONTAINER.getJdbcUrl(),
+                MYSQL_CONTAINER.getUsername(),
+                MYSQL_CONTAINER.getPassword()
+            );
+            var flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load();
+            flyway.migrate();
+            var pattern = Pattern.compile("jdbc:mysql://(?<host>[^:/?#]+)(:(?<port>\\d+))?/(?<schema>[^?&]+)");
+            var matcher = pattern.matcher(MYSQL_CONTAINER.getJdbcUrl());
+            if (!matcher.matches()) {
+                throw new RuntimeException("Could not parse JDBC URL: " + MYSQL_CONTAINER.getJdbcUrl());
+            }
+            var testDbConfig = SteveConfiguration.DB.builder()
+                .ip(matcher.group("host"))
+                .port(Integer.parseInt(matcher.group("port")))
+                .schema(matcher.group("schema"))
+                .userName(MYSQL_CONTAINER.getUsername())
+                .password(MYSQL_CONTAINER.getPassword())
+                .sqlLogging(true)
+                .build();
+            SteveConfiguration.CONFIG.setDb(testDbConfig);
+        } else {
+            dataSource = beanConfiguration.dataSource();
+        }
+
+        dslContext = beanConfiguration.dslContext(dataSource);
+
         runOperation(ctx -> {
             truncateTables(ctx);
             insertChargeBox(ctx);
@@ -97,6 +156,9 @@ public class __DatabasePreparer__ {
 
     public static void cleanUp() {
         runOperation(__DatabasePreparer__::truncateTables);
+        if (SteveConfiguration.CONFIG.getProfile() == ApplicationProfile.DEV) {
+            MYSQL_CONTAINER.stop();
+        }
     }
 
     public static String getRegisteredChargeBoxId() {
@@ -159,13 +221,7 @@ public class __DatabasePreparer__ {
         );
 
         ctx.transaction(configuration -> {
-            Schema schema = DefaultCatalog.DEFAULT_CATALOG.getSchemas()
-                                                          .stream()
-                                                          .filter(s -> SCHEMA_TO_TRUNCATE.equals(s.getName()))
-                                                          .findFirst()
-                                                          .orElseThrow(() -> new RuntimeException("Could not find schema"));
-
-            List<Table<?>> tables = schema.getTables()
+            List<Table<?>> tables = SCHEMA.getTables()
                                           .stream()
                                           .filter(t -> !skipList.contains(t))
                                           .collect(Collectors.toList());

@@ -94,13 +94,17 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
     @Bean
     public DataSource dataSource() {
         SteveConfiguration.DB dbConfig = CONFIG.getDb();
+        var dbUrl = "jdbc:mysql://" + dbConfig.getIp() + ":" + dbConfig.getPort() + "/" + dbConfig.getSchema();
+        return dataSource(dbUrl, dbConfig.getUserName(), dbConfig.getPassword());
+    }
 
+    public DataSource dataSource(String dbUrl, String dbUserName, String dbPassword) {
         HikariConfig hc = new HikariConfig();
 
         // set standard params
-        hc.setJdbcUrl("jdbc:mysql://" + dbConfig.getIp() + ":" + dbConfig.getPort() + "/" + dbConfig.getSchema());
-        hc.setUsername(dbConfig.getUserName());
-        hc.setPassword(dbConfig.getPassword());
+        hc.setJdbcUrl(dbUrl);
+        hc.setUsername(dbUserName);
+        hc.setPassword(dbPassword);
 
         // set non-standard params
         hc.addDataSourceProperty(PropertyKey.cachePrepStmts.getKeyName(), true);
