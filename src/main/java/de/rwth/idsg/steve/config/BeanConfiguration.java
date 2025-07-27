@@ -191,7 +191,7 @@ public class BeanConfiguration implements WebMvcConfigurer, ApplicationContextAw
     @Bean
     public ReleaseCheckService releaseCheckService() {
         if (InternetChecker.isInternetAvailable()) {
-            return new GithubReleaseCheckService();
+            return new GithubReleaseCheckService(steveConfiguration());
         } else {
             return new DummyReleaseCheckService();
         }
