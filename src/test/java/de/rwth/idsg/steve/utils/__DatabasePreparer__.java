@@ -111,11 +111,6 @@ public class __DatabasePreparer__ {
                 MYSQL_CONTAINER.getPassword(),
                 "UTC"
             );
-            var flyway = Flyway.configure()
-                .dataSource(dataSource)
-                .locations("classpath:db/migration")
-                .load();
-            flyway.migrate();
             var pattern = Pattern.compile("jdbc:mysql://(?<host>[^:/?#]+)(:(?<port>\\d+))?/(?<schema>[^?&]+)");
             var matcher = pattern.matcher(MYSQL_CONTAINER.getJdbcUrl());
             if (!matcher.matches()) {
@@ -133,6 +128,11 @@ public class __DatabasePreparer__ {
         } else {
             dataSource = beanConfiguration.dataSource();
         }
+        var flyway = Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .load();
+        flyway.migrate();
 
         dslContext = beanConfiguration.dslContext(dataSource);
 

@@ -219,14 +219,21 @@ public enum SteveConfiguration {
     }
 
     // Database configuration
-    @Builder @Getter
+    @Builder
     public static class DB {
         private final String ip;
         private final int port;
         private final String schema;
+        @Getter
         private final String userName;
+        @Getter
         private final String password;
+        @Getter
         private final boolean sqlLogging;
+
+        public String getJdbcUrl() {
+            return "jdbc:mysql://" + ip + ":" + port + "/" + schema;
+        }
     }
 
     // Credentials for Web interface access
