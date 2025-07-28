@@ -1,8 +1,39 @@
-name: build and run tests
-on: [ push, pull_request ]
+name: Build and run Tests
+on: [push, pull_request]
 
 jobs:
   build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+
+      - name: Build
+        run: ./mvnw -B -V -Dmaven.javadoc.skip=true -Dmaven.test.skip=true compile --file pom.xml
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dist
+          path: |
+            target
+            .mvn
+            mvnw
+            pom.xml
+            src/test
+
+  test:
+    name: Test on ${{ matrix.os }} - Java ${{ matrix.java }} + DB ${{ matrix.db }}
+    needs: build
+    runs-on: ${{ matrix.os }}
     env:
       DB_USER: steve
       DB_PASSWORD: changeme
@@ -10,12 +41,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, ubuntu-24.04 ]
-        java: [ '17', '21' ]
-        db: [ 'mysql:8.0', 'mariadb:10.3', 'mariadb:10.4.30', 'mariadb:10.5.21', 'mariadb:10.6.14' ]
-    runs-on: ${{ matrix.os }}
+        os: [ubuntu-22.04, ubuntu-24.04]
+        java: [17, 21]
+        db: [mysql:8.0, mariadb:10.3, mariadb:10.4.30, mariadb:10.5.21, mariadb:10.6.14]
+
     services:
-      mysql:
+      db:
         image: ${{ matrix.db }}
         env:
           MYSQL_ROOT_PASSWORD: root
@@ -26,29 +57,29 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Java 17 for build
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: app-dist
+          path: .
+
+      - name: Set up Java ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
-          java-version: 17
-          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          distribution: temurin
           cache: maven
 
-      - name: Set up MySQL for tests
+      - name: Prepare DB
         run: |
           mysql -h 127.0.0.1 -P 3306 -uroot -proot -e "SELECT @@VERSION;"
           mysql -h 127.0.0.1 -P 3306 -uroot -proot -e "CREATE DATABASE $DB_SCHEMA;" -v
           mysql -h 127.0.0.1 -P 3306 -uroot -proot -e "CREATE USER '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';" -v
           mysql -h 127.0.0.1 -P 3306 -uroot -proot -e "GRANT ALL PRIVILEGES ON $DB_SCHEMA.* TO '$DB_USER'@'%';" -v
 
-      - name: Build with Maven
-        run: ./mvnw -B -V -Dmaven.javadoc.skip=true -Ddb-user=$DB_USER -Ddb-password=$DB_PASSWORD -Ddb-schema=$DB_SCHEMA -Ptest clean package --file pom.xml
-
-      - name: Set up Java ${{ matrix.java }} for run
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ matrix.java }}
-          distribution: 'temurin'
-          cache: maven
+      - name: Run all tests
+        run: ./mvnw -B -V -Dmaven.javadoc.skip=true -Ddb-user=$DB_USER -Ddb-password=$DB_PASSWORD -Ddb-schema=$DB_SCHEMA -Ptest verify --file pom.xml
 
       - name: Start the app and visit signin web page
         run: |
