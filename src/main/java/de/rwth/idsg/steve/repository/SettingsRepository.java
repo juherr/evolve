@@ -18,17 +18,12 @@
  */
 package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.dto.MailSettings;
 import de.rwth.idsg.steve.web.dto.SettingsForm;
+import jooq.steve.db.tables.records.SettingsRecord;
 
-/**
- * @author Sevket Goekay <sevketgokay@gmail.com>
- * @since 06.11.2015
- */
 public interface SettingsRepository {
-    SettingsForm getForm();
-    MailSettings getMailSettings();
-    int getHeartbeatIntervalInSeconds();
-    int getHoursToExpire();
-    void update(SettingsForm settingsForm);
+
+    SettingsRecord getSettings();
+
+    void update(SettingsForm form);
 }

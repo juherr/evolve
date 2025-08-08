@@ -16,16 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package de.rwth.idsg.steve.repository;
+package de.rwth.idsg.steve.repository.impl;
 
+import de.rwth.idsg.steve.repository.GenericRepository;
+import de.rwth.idsg.steve.repository.GenericRepositoryV1;
 import de.rwth.idsg.steve.repository.dto.DbVersion;
+import de.rwth.idsg.steve.service.GenericService;
 import de.rwth.idsg.steve.web.dto.Statistics;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
-public interface GenericRepository {
+@Repository
+@RequiredArgsConstructor
+public class GenericRepositoryV1Impl implements GenericRepositoryV1 {
 
-    long getSystemTimeDifference();
+    private final GenericRepository genericRepository;
+    private final GenericService genericService;
 
-    Statistics getStats();
+    @Override
+    public void checkJavaAndMySQLOffsets() {
+        genericService.checkJavaAndMySQLOffsets();
+    }
 
-    DbVersion getDBVersion();
+    @Override
+    public Statistics getStats() {
+        return genericRepository.getStats();
+    }
+
+    @Override
+    public DbVersion getDBVersion() {
+        return genericRepository.getDBVersion();
+    }
 }

@@ -445,6 +445,7 @@
                 </executions>
             </plugin>
 
+            <!--
             <plugin>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-jooq-codegen-maven-plugin</artifactId>
@@ -472,24 +473,13 @@
                             <database>
                                 <type>MYSQL</type>
                                     <containerImage>mysql:8.0</containerImage>
-                                    <username>root</username> <!-- Use root because of permissions -->
+                                    <username>root</username>
                                     <password>${db-password}</password>
                                     <databaseName>${db-schema}</databaseName>
                             </database>
                             <flyway>
-                                <!-- https://github.com/steve-community/steve/issues/157 -->
                                 <initSql>SET default_storage_engine=InnoDB;</initSql>
-                                <!-- we need this because of extensions. they have a higher version number
-                                     namespace reserved (e.g. 8.x.x). new migrations in core version should
-                                     be executed in the extended version as well -->
                                 <outOfOrder>true</outOfOrder>
-
-                                <!-- Because maven produces this warning after upgrading from 4.2.0 to 5.1.0:
-                                     [WARNING] Could not find schema history table `stevedb`.`flyway_schema_history`, but found
-                                     `stevedb`.`schema_version` instead. You are seeing this message because Flyway changed its
-                                     default for flyway.table in version 5.0.0 to flyway_schema_history and you are still relying
-                                     on the old default (schema_version). Set flyway.table=schema_version in your configuration to
-                                     fix this. This fallback mechanism will be removed in Flyway 6.0.0. -->
                                 <table>schema_version</table>
 
                                 <cleanDisabled>true</cleanDisabled>
@@ -504,7 +494,6 @@
                                     <location>filesystem:src/main/resources/db/migration</location>
                                 </locations>
                             </flyway>
-                            <!-- Generator parameters -->
                             <jooq>
                                 <generator>
                                     <database>
@@ -517,7 +506,6 @@
                                         <forcedTypes>
                                             <forcedType>
                                                 <name>BOOLEAN</name>
-                                                <!-- https://github.com/jOOQ/jOOQ/issues/7719 -->
                                                 <includeTypes>(?i:(TINY|SMALL|MEDIUM|BIG)?INT(UNSIGNED)?\(1\))</includeTypes>
                                             </forcedType>
                                             <forcedType>
@@ -543,6 +531,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 

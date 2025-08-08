@@ -18,29 +18,23 @@
  */
 package de.rwth.idsg.steve.repository;
 
+import de.rwth.idsg.steve.repository.dto.Transaction;
+import de.rwth.idsg.steve.repository.dto.TransactionDetails;
 import de.rwth.idsg.steve.web.dto.TransactionQueryForm;
-import jooq.steve.db.tables.records.ConnectorMeterValueRecord;
-import jooq.steve.db.tables.records.TransactionStartRecord;
-import org.jooq.Record;
-import org.jooq.Result;
 
 import java.io.Writer;
-import java.time.LocalDateTime;
 import java.util.List;
 
-public interface TransactionRepository {
-
-    Result<? extends Record> getTransactions(TransactionQueryForm form);
+/**
+ * @author Sevket Goekay <sevketgokay@gmail.com>
+ * @since 19.08.2014
+ */
+public interface TransactionRepositoryV1 {
+    List<Transaction> getTransactions(TransactionQueryForm form);
 
     void writeTransactionsCSV(TransactionQueryForm form, Writer writer);
 
     List<Integer> getActiveTransactionIds(String chargeBoxId);
 
-    Result<? extends Record> getTransaction(int transactionPk);
-
-    TransactionStartRecord getNextTransaction(String chargeBoxId, int connectorId, LocalDateTime startTimestamp);
-
-    Result<ConnectorMeterValueRecord> getMeterValues(int transactionPk);
-
-    Result<ConnectorMeterValueRecord> getMeterValues(String chargeBoxId, int connectorId, LocalDateTime startTimestamp, LocalDateTime stopTimestamp);
+    TransactionDetails getDetails(int transactionPk);
 }

@@ -19,33 +19,50 @@
 package de.rwth.idsg.steve.repository;
 
 import de.rwth.idsg.steve.repository.dto.ChargingProfile;
+import de.rwth.idsg.steve.repository.dto.ChargingProfileAssignment;
+import de.rwth.idsg.steve.web.dto.ChargingProfileAssignmentQueryForm;
 import de.rwth.idsg.steve.web.dto.ChargingProfileForm;
-import jooq.steve.db.tables.records.ChargingProfileRecord;
-import jooq.steve.db.tables.records.ChargingSchedulePeriodRecord;
+import de.rwth.idsg.steve.web.dto.ChargingProfileQueryForm;
 import ocpp.cp._2015._10.ChargingProfilePurposeType;
-import org.jooq.DSLContext;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface ChargingProfileRepository {
+/**
+ * @author Sevket Goekay <sevketgokay@gmail.com>
+ * @since 12.11.2018
+ */
+public interface ChargingProfileRepositoryV1 {
+
+    // -------------------------------------------------------------------------
+    // OCPP operations
+    // -------------------------------------------------------------------------
 
     void setProfile(int chargingProfilePk, String chargeBoxId, int connectorId);
 
     void clearProfile(int chargingProfilePk, String chargeBoxId);
 
-    void clearProfile(String chargeBoxId, Integer connectorId, ChargingProfilePurposeType purpose, Integer stackLevel);
+    void clearProfile(@NotNull String chargeBoxId,
+                      @Nullable Integer connectorId,
+                      @Nullable ChargingProfilePurposeType purpose,
+                      @Nullable Integer stackLevel);
+
+    // -------------------------------------------------------------------------
+    // CRUD stuff
+    // -------------------------------------------------------------------------
+
+    List<ChargingProfileAssignment> getAssignments(ChargingProfileAssignmentQueryForm query);
 
     List<ChargingProfile.BasicInfo> getBasicInfo();
 
-    ChargingProfileRecord getProfile(int chargingProfilePk);
+    List<ChargingProfile.Overview> getOverview(ChargingProfileQueryForm form);
 
-    List<ChargingSchedulePeriodRecord> getPeriods(int chargingProfilePk);
+    ChargingProfile.Details getDetails(int chargingProfilePk);
 
     int add(ChargingProfileForm form);
 
     void update(ChargingProfileForm form);
 
     void delete(int chargingProfilePk);
-
-    List<String> getChargeBoxIdsForProfile(int chargingProfilePk);
 }

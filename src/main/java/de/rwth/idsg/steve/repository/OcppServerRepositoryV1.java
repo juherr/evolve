@@ -28,27 +28,24 @@ import ocpp.cs._2015._10.MeterValue;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface OcppServerRepository {
+/**
+ * @author Sevket Goekay <sevketgokay@gmail.com>
+ * @since 19.08.2014
+ */
+public interface OcppServerRepositoryV1 {
 
-    void updateChargebox(UpdateChargeboxParams p);
-
-    void updateOcppProtocol(String chargeBoxIdentity, OcppProtocol protocol);
-
+    void updateChargebox(UpdateChargeboxParams params);
+    void updateOcppProtocol(String chargeBoxId, OcppProtocol protocol);
     void updateEndpointAddress(String chargeBoxIdentity, String endpointAddress);
-
     void updateChargeboxFirmwareStatus(String chargeBoxIdentity, String firmwareStatus);
-
     void updateChargeboxDiagnosticsStatus(String chargeBoxIdentity, String status);
-
     void updateChargeboxHeartbeat(String chargeBoxIdentity, LocalDateTime ts);
 
-    void insertConnectorStatus(InsertConnectorStatusParams p);
+    void insertConnectorStatus(InsertConnectorStatusParams params);
 
     void insertMeterValues(String chargeBoxIdentity, List<MeterValue> list, int connectorId, Integer transactionId);
-
     void insertMeterValues(String chargeBoxIdentity, List<MeterValue> list, int transactionId);
 
-    int insertTransaction(InsertTransactionParams p);
-
-    void updateTransaction(UpdateTransactionParams p);
+    int insertTransaction(InsertTransactionParams params);
+    void updateTransaction(UpdateTransactionParams params);
 }

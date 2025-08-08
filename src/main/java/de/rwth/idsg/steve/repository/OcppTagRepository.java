@@ -18,35 +18,35 @@
  */
 package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.dto.OcppTag;
 import de.rwth.idsg.steve.web.dto.OcppTagForm;
-import de.rwth.idsg.steve.web.dto.OcppTagQueryForm;
-import jooq.steve.db.tables.records.OcppTagActivityRecord;
-import org.jooq.Result;
+import de.rwth.idsg.steve.repository.dto.OcppTag;
 
 import java.util.List;
+import java.util.Optional;
 
-/**
- * @author Sevket Goekay <sevketgokay@gmail.com>
- * @since 19.08.2014
- */
 public interface OcppTagRepository {
-    List<OcppTag.OcppTagOverview> getOverview(OcppTagQueryForm form);
 
-    Result<OcppTagActivityRecord> getRecords();
-    Result<OcppTagActivityRecord> getRecords(List<String> idTagList);
+    List<OcppTag.OcppTagOverview> getRecords();
 
-    OcppTagActivityRecord getRecord(String idTag);
-    OcppTagActivityRecord getRecord(int ocppTagPk);
+    List<OcppTag.OcppTagOverview> getRecords(List<String> idTagList);
+
+    Optional<OcppTag.OcppTagOverview> getRecord(String idTag);
+
+    Optional<OcppTag.OcppTagOverview> getRecord(int ocppTagPk);
 
     List<String> getIdTags();
+
     List<String> getActiveIdTags();
 
     List<String> getParentIdTags();
+
     String getParentIdtag(String idTag);
 
     void addOcppTagList(List<String> idTagList);
-    int addOcppTag(OcppTagForm form);
-    void updateOcppTag(OcppTagForm form);
+
+    int addOcppTag(OcppTagForm u);
+
+    void updateOcppTag(OcppTagForm u);
+
     void deleteOcppTag(int ocppTagPk);
 }

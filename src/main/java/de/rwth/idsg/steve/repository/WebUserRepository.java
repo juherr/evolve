@@ -20,7 +20,7 @@ package de.rwth.idsg.steve.repository;
 
 import jooq.steve.db.tables.records.WebUserRecord;
 
-public interface WebUserRepository  {
+public interface WebUserRepository {
 
     void createUser(WebUserRecord user);
 
