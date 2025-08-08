@@ -26,6 +26,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Encapsulates java.util.Properties and adds type specific convenience methods
@@ -141,12 +143,32 @@ public class PropertiesFileLoader {
         if (value == null) {
             return null;
         }
-        if ("$".equals(String.valueOf(value.charAt(0)))) {
-            String sysEnvValue = System.getenv(value.substring(1));
-            if (sysEnvValue != null) {
-                return sysEnvValue;
+
+        // Match ${VAR:default} or ${VAR}
+        Pattern pattern = Pattern.compile("\\$\\{([^}]+?)(?::([^}]+))?\\}");
+        Matcher matcher = pattern.matcher(value);
+
+        if (matcher.matches()) {
+            String envVarName = matcher.group(1);
+            String defaultValue = matcher.group(2); // Can be null
+
+            String envVarValue = System.getenv(envVarName);
+            if (envVarValue != null) {
+                return envVarValue;
+            } else if (defaultValue != null) {
+                return defaultValue;
             }
         }
+
+        // Fallback for simple $VAR syntax for backward compatibility
+        if (value.startsWith("$")) {
+            String envVarName = value.substring(1);
+            String envVarValue = System.getenv(envVarName);
+            if (envVarValue != null) {
+                return envVarValue;
+            }
+        }
+
         return value;
     }
 

@@ -24,13 +24,16 @@ services:
   app:
     restart: unless-stopped
     build: .
-    links:
-      - "db:mariadb"
-    volumes:
-      - .:/code
     ports:
       - "8180:8180"
       - "8443:8443"
     depends_on:
       - db
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_SCHEMA: stevedb
+      DB_USER: steve
+      DB_PASSWORD: changeme
     
