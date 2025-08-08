@@ -376,56 +376,13 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>1.5.3</version>
-                <executions>
-                    <execution>
-                        <id>add-request-interface</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                        <configuration>
-                            <filesToInclude>${basedir}/src/main/resources/OCPP-2.0.1_part3_JSON_schemas/*Request.json</filesToInclude>
-                            <preserveDir>false</preserveDir>
-                            <outputDir>${project.build.directory}/generated-resources</outputDir>
-                            <replacements>
-                                <replacement>
-                                    <token>"definitions"</token>
-                                    <value>"javaInterfaces" : ["de.rwth.idsg.ocpp.jaxb.RequestType"],
-                                      "definitions"</value>
-                                </replacement>
-                              </replacements>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-response-interface</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                        <configuration>
-                            <filesToInclude>${basedir}/src/main/resources/OCPP-2.0.1_part3_JSON_schemas/*Response.json</filesToInclude>
-                            <preserveDir>false</preserveDir>
-                            <outputDir>${project.build.directory}/generated-resources</outputDir>
-                            <replacements>
-                                <replacement>
-                                    <token>"definitions"</token>
-                                    <value>"javaInterfaces" : ["de.rwth.idsg.ocpp.jaxb.ResponseType"],
-                                      "definitions"</value>
-                                </replacement>
-                              </replacements>
-                          </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.jsonschema2pojo</groupId>
                 <artifactId>jsonschema2pojo-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <sourceDirectory>${project.build.directory}/generated-resources</sourceDirectory>
+                    <sourcePaths>
+                        <sourcePath>${basedir}/src/main/resources/OCPP-2.0.1_part3_JSON_schemas</sourcePath>
+                    </sourcePaths>
                     <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
                     <targetPackage>ocpp._2020._03</targetPackage>
                     <generateBuilders>true</generateBuilders>
@@ -437,7 +394,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>process-resources</phase>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -472,24 +429,24 @@
                             <database>
                                 <type>MYSQL</type>
                                     <containerImage>mysql:8.0</containerImage>
-                                    <username>root</username> <!-- Use root because of permissions -->
+                                    <username>root</username> &lt;!&ndash; Use root because of permissions &ndash;&gt;
                                     <password>${db-password}</password>
                                     <databaseName>${db-schema}</databaseName>
                             </database>
                             <flyway>
-                                <!-- https://github.com/steve-community/steve/issues/157 -->
+                                &lt;!&ndash; https://github.com/steve-community/steve/issues/157 &ndash;&gt;
                                 <initSql>SET default_storage_engine=InnoDB;</initSql>
-                                <!-- we need this because of extensions. they have a higher version number
+                                &lt;!&ndash; we need this because of extensions. they have a higher version number
                                      namespace reserved (e.g. 8.x.x). new migrations in core version should
-                                     be executed in the extended version as well -->
+                                     be executed in the extended version as well &ndash;&gt;
                                 <outOfOrder>true</outOfOrder>
 
-                                <!-- Because maven produces this warning after upgrading from 4.2.0 to 5.1.0:
+                                &lt;!&ndash; Because maven produces this warning after upgrading from 4.2.0 to 5.1.0:
                                      [WARNING] Could not find schema history table `stevedb`.`flyway_schema_history`, but found
                                      `stevedb`.`schema_version` instead. You are seeing this message because Flyway changed its
                                      default for flyway.table in version 5.0.0 to flyway_schema_history and you are still relying
                                      on the old default (schema_version). Set flyway.table=schema_version in your configuration to
-                                     fix this. This fallback mechanism will be removed in Flyway 6.0.0. -->
+                                     fix this. This fallback mechanism will be removed in Flyway 6.0.0. &ndash;&gt;
                                 <table>schema_version</table>
 
                                 <cleanDisabled>true</cleanDisabled>
@@ -504,7 +461,7 @@
                                     <location>filesystem:src/main/resources/db/migration</location>
                                 </locations>
                             </flyway>
-                            <!-- Generator parameters -->
+                            &lt;!&ndash; Generator parameters &ndash;&gt;
                             <jooq>
                                 <generator>
                                     <database>
@@ -517,7 +474,7 @@
                                         <forcedTypes>
                                             <forcedType>
                                                 <name>BOOLEAN</name>
-                                                <!-- https://github.com/jOOQ/jOOQ/issues/7719 -->
+                                                &lt;!&ndash; https://github.com/jOOQ/jOOQ/issues/7719 &ndash;&gt;
                                                 <includeTypes>(?i:(TINY|SMALL|MEDIUM|BIG)?INT(UNSIGNED)?\(1\))</includeTypes>
                                             </forcedType>
                                             <forcedType>
