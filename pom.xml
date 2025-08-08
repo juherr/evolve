@@ -51,60 +51,15 @@
         <!-- In Mysql: schema == database (http://dev.mysql.com/doc/refman/5.6/en/glossary.html#glos_schema) -->
         <jdbcUrl>jdbc:mysql://${db-ip}:${db-port}/${db-schema}?useSSL=true&amp;serverTimezone=UTC</jdbcUrl>
         <db-driver>com.mysql.cj.jdbc.Driver</db-driver>
+
+        <db-ip>localhost</db-ip>
+        <db-port>3306</db-port>
+        <db-schema>stevedb</db-schema>
+        <db-user>steve</db-user>
+        <db-password>changeme</db-password>
     </properties>
 
     <profiles>
-        <profile>
-            <id>prod</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <db-ip>localhost</db-ip>
-                <db-port>3306</db-port>
-                <db-schema>stevedb</db-schema>
-                <db-user>steve</db-user>
-                <db-password>changeme</db-password>
-                <envName>prod</envName>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-        <profile>
-            <id>docker</id>
-            <properties>
-                <db-ip>mariadb</db-ip>
-                <db-port>3306</db-port>
-                <db-schema>stevedb</db-schema>
-                <db-user>steve</db-user>
-                <db-password>changeme</db-password>
-                <envName>docker</envName>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-        <profile>
-            <id>kubernetes</id>
-            <properties>
-                <db-ip>${env.DB_HOST}</db-ip>
-                <db-port>${env.DB_PORT}</db-port>
-                <db-schema>${env.DB_DATABASE}</db-schema>
-                <db-user>${env.DB_USERNAME}</db-user>
-                <db-password>${env.DB_PASSWORD}</db-password>
-                <envName>kubernetes</envName>
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <db-ip>localhost</db-ip>
-                <db-port>3306</db-port>
-                <db-schema>stevedb</db-schema>
-                <db-user>steve</db-user>
-                <db-password>changeme</db-password>
-                <envName>dev</envName>
-                <skipTests>false</skipTests>
-            </properties>
-        </profile>
         <profile>
             <id>test</id>
             <properties>
@@ -113,9 +68,36 @@
                 <db-schema>stevedb_test_2aa6a783d47d</db-schema>
                 <db-user>steve</db-user>
                 <db-password>changeme</db-password>
-                <envName>test</envName>
                 <skipTests>false</skipTests>
             </properties>
+        </profile>
+        <profile>
+            <id>docker-image</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>dockerfile-maven-plugin</artifactId>
+                        <version>1.4.13</version>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <repository>steve-community/steve</repository>
+                            <tag>${project.version}</tag>
+                            <buildArgs>
+                                <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -127,18 +109,14 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>application.properties</include>
-                    <include>application-${envName}.properties</include>
-                    <include>logback-spring-${envName}.xml</include>
                 </includes>
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
-                <includes>
-                    <include>static/**</include>
-                    <include>templates/**</include>
-                    <include>db/migration/**</include>
-                </includes>
+                <excludes>
+                    <exclude>application.properties</exclude>
+                </excludes>
             </resource>
         </resources>
 

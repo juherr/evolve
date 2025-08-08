@@ -1,26 +1,31 @@
-FROM eclipse-temurin:17-jdk
+# Stage 1: Build the application
+FROM maven:3.8-openjdk-17 AS builder
 
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+WORKDIR /app
 
-MAINTAINER Ling Li
+# Copy the Maven wrapper and pom.xml
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
 
-# Download and install dockerize.
-# Needed so the web container will wait for MariaDB to start.
-ENV DOCKERIZE_VERSION v0.19.0
-RUN curl -sfL https://github.com/powerman/dockerize/releases/download/"$DOCKERIZE_VERSION"/dockerize-`uname -s`-`uname -m` | install /dev/stdin /usr/local/bin/dockerize
+# Download Maven dependencies
+RUN ./mvnw dependency:go-offline
 
-EXPOSE 8180
-EXPOSE 8443
-WORKDIR /code
+# Copy the rest of the source code
+COPY src/ src/
 
-VOLUME ["/code"]
+# Build the application, skipping tests
+RUN ./mvnw package -DskipTests=true
 
-# Copy the application's code
-COPY . /code
+# Stage 2: Create the runtime image
+FROM eclipse-temurin:17-jre
 
-# Wait for the db to startup(via dockerize), then 
-# Build and run steve, requires a db to be available on port 3306
-CMD dockerize -wait tcp://mariadb:3306 -timeout 60s && \
-	./mvnw clean package -Pdocker -Djdk.tls.client.protocols="TLSv1,TLSv1.1,TLSv1.2" && \
-	java -XX:MaxRAMPercentage=85 -jar target/steve.jar
+WORKDIR /app
 
+# Copy the JAR file from the builder stage
+COPY --from=builder /app/target/steve.jar /app/steve.jar
+
+# Expose the application port
+EXPOSE 8080
+
+# Set the entrypoint to run the application
+ENTRYPOINT ["java", "-jar", "/app/steve.jar"]

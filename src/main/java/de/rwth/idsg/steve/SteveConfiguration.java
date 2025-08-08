@@ -21,6 +21,7 @@ package de.rwth.idsg.steve;
 import de.rwth.idsg.steve.ocpp.ws.custom.WsSessionSelectStrategy;
 import de.rwth.idsg.steve.ocpp.ws.custom.WsSessionSelectStrategyEnum;
 import de.rwth.idsg.steve.utils.PropertiesFileLoader;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -64,8 +65,11 @@ public enum SteveConfiguration {
     private final Jetty jetty;
 
     SteveConfiguration() {
+        String activeProfile = Optional.ofNullable(System.getenv("SPRING_PROFILES_ACTIVE"))
+                                       .orElse(System.getProperty("spring.profiles.active", "prod"));
+
+        profile = ApplicationProfile.fromName(activeProfile);
         PropertiesFileLoader p = new PropertiesFileLoader("application.properties");
-        profile = ApplicationProfile.fromName(p.getString("profile"));
         PropertiesFileLoader overriden = new PropertiesFileLoader("application-" + profile.name().toLowerCase() + ".properties");
 
         contextPath = sanitizeContextPath(getOptionalString("context.path", p, overriden));
