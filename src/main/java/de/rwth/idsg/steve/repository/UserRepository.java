@@ -18,21 +18,22 @@
  */
 package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.dto.User;
 import de.rwth.idsg.steve.web.dto.UserForm;
-import de.rwth.idsg.steve.web.dto.UserQueryForm;
+import jooq.steve.db.tables.records.UserRecord;
 
-import java.util.List;
-
-/**
- * @author Sevket Goekay <sevketgokay@gmail.com>
- * @since 25.11.2015
- */
 public interface UserRepository {
-    List<User.Overview> getOverview(UserQueryForm form);
-    User.Details getDetails(int userPk);
 
-    void add(UserForm form);
-    void update(UserForm form);
+    UserRecord getUser(int userPk);
+
+    String getOcppIdTag(int ocppTagPk);
+
+    void add(UserForm form, Integer addressPk, Integer ocppTagPk);
+
+    void update(UserForm form, Integer addressPk, Integer ocppTagPk);
+
     void delete(int userPk);
+
+    int getAddressId(int userPk);
+
+    int getOcppTagPk(String ocppIdTag);
 }

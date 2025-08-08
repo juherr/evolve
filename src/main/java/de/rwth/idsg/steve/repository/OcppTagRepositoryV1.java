@@ -16,27 +16,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package de.rwth.idsg.steve.service;
+package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.OcppTagRepository;
 import de.rwth.idsg.steve.repository.dto.OcppTag;
+import de.rwth.idsg.steve.web.dto.OcppTagForm;
 import de.rwth.idsg.steve.web.dto.OcppTagQueryForm;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import jooq.steve.db.tables.records.OcppTagActivityRecord;
+import org.jooq.Result;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class OcppTagService {
+/**
+ * @author Sevket Goekay <sevketgokay@gmail.com>
+ * @since 19.08.2014
+ */
+public interface OcppTagRepositoryV1 {
+    List<OcppTag.OcppTagOverview> getOverview(OcppTagQueryForm form);
 
-    private final OcppTagRepository ocppTagRepository;
+    Result<OcppTagActivityRecord> getRecords();
+    Result<OcppTagActivityRecord> getRecords(List<String> idTagList);
 
-    public List<OcppTag.OcppTagOverview> getOverview(OcppTagQueryForm form) {
-        // This method is now much simpler, as the complex query logic has been moved to the service.
-        // The service should be responsible for building the query, and the repository for executing it.
-        // However, since we are preparing for Spring Data, we will keep the query logic in the service for now.
-        // When we switch to Spring Data, we will use its query derivation capabilities.
-        return ocppTagRepository.getRecords();
-    }
+    OcppTagActivityRecord getRecord(String idTag);
+    OcppTagActivityRecord getRecord(int ocppTagPk);
+
+    List<String> getIdTags();
+    List<String> getActiveIdTags();
+
+    List<String> getParentIdTags();
+    String getParentIdtag(String idTag);
+
+    void addOcppTagList(List<String> idTagList);
+    int addOcppTag(OcppTagForm form);
+    void updateOcppTag(OcppTagForm form);
+    void deleteOcppTag(int ocppTagPk);
 }

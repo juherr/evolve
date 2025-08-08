@@ -1,0 +1,169 @@
+/*
+ * SteVe - SteckdosenVerwaltung - https://github.com/steve-community/steve
+ * Copyright (C) 2013-2025 SteVe Community Team
+ * All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package de.rwth.idsg.steve.service;
+
+import de.rwth.idsg.steve.SteveException;
+import de.rwth.idsg.steve.repository.AddressRepository;
+import de.rwth.idsg.steve.repository.UserRepository;
+import de.rwth.idsg.steve.repository.dto.User;
+import de.rwth.idsg.steve.web.dto.UserForm;
+import de.rwth.idsg.steve.web.dto.UserQueryForm;
+import jooq.steve.db.tables.records.AddressRecord;
+import jooq.steve.db.tables.records.UserRecord;
+import lombok.RequiredArgsConstructor;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.JoinType;
+import org.jooq.Record7;
+import org.jooq.Result;
+import org.jooq.SelectQuery;
+import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+import static de.rwth.idsg.steve.utils.CustomDSL.includes;
+import static jooq.steve.db.tables.OcppTag.OCPP_TAG;
+import static jooq.steve.db.tables.User.USER;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final DSLContext ctx;
+    private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
+
+    public List<User.Overview> getOverview(UserQueryForm form) {
+        return getOverviewInternal(form)
+                .map(r -> User.Overview.builder()
+                        .userPk(r.value1())
+                        .ocppTagPk(r.value2())
+                        .ocppIdTag(r.value3())
+                        .name(r.value4() + " " + r.value5())
+                        .phone(r.value6())
+                        .email(r.value7())
+                        .build()
+                );
+    }
+
+    public User.Details getDetails(int userPk) {
+        UserRecord ur = userRepository.getUser(userPk);
+        if (ur == null) {
+            throw new SteveException("There is no user with id '%s'", userPk);
+        }
+
+        AddressRecord ar = addressRepository.get(ur.getAddressPk());
+
+        String ocppIdTag = null;
+        if (ur.getOcppTagPk() != null) {
+            ocppIdTag = userRepository.getOcppIdTag(ur.getOcppTagPk());
+        }
+
+        return User.Details.builder()
+                .userRecord(ur)
+                .address(ar)
+                .ocppIdTag(Optional.ofNullable(ocppIdTag))
+                .build();
+    }
+
+    public void add(UserForm form) {
+        ctx.transaction(configuration -> {
+            try {
+                Integer addressId = updateOrInsertAddress(form.getAddress());
+                Integer ocppTagPk = userRepository.getOcppTagPk(form.getOcppIdTag());
+                userRepository.add(form, addressId, ocppTagPk);
+            } catch (DataAccessException e) {
+                throw new SteveException("Failed to add the user", e);
+            }
+        });
+    }
+
+    public void update(UserForm form) {
+        ctx.transaction(configuration -> {
+            try {
+                Integer addressId = updateOrInsertAddress(form.getAddress());
+                Integer ocppTagPk = userRepository.getOcppTagPk(form.getOcppIdTag());
+                userRepository.update(form, addressId, ocppTagPk);
+            } catch (DataAccessException e) {
+                throw new SteveException("Failed to update the user", e);
+            }
+        });
+    }
+
+    public void delete(int userPk) {
+        ctx.transaction(configuration -> {
+            try {
+                int addressId = userRepository.getAddressId(userPk);
+                addressRepository.delete(addressId);
+                userRepository.delete(userPk);
+            } catch (DataAccessException e) {
+                throw new SteveException("Failed to delete the user", e);
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private Result<Record7<Integer, Integer, String, String, String, String, String>> getOverviewInternal(UserQueryForm form) {
+        SelectQuery selectQuery = ctx.selectQuery();
+        selectQuery.addFrom(USER);
+        selectQuery.addJoin(OCPP_TAG, JoinType.LEFT_OUTER_JOIN, USER.OCPP_TAG_PK.eq(OCPP_TAG.OCPP_TAG_PK));
+        selectQuery.addSelect(
+                USER.USER_PK,
+                USER.OCPP_TAG_PK,
+                OCPP_TAG.ID_TAG,
+                USER.FIRST_NAME,
+                USER.LAST_NAME,
+                USER.PHONE,
+                USER.E_MAIL
+        );
+
+        if (form.isSetUserPk()) {
+            selectQuery.addConditions(USER.USER_PK.eq(form.getUserPk()));
+        }
+
+        if (form.isSetOcppIdTag()) {
+            selectQuery.addConditions(includes(OCPP_TAG.ID_TAG, form.getOcppIdTag()));
+        }
+
+        if (form.isSetEmail()) {
+            selectQuery.addConditions(includes(USER.E_MAIL, form.getEmail()));
+        }
+
+        if (form.isSetName()) {
+            Field<String> joinedField = DSL.concat(USER.FIRST_NAME, USER.LAST_NAME);
+            selectQuery.addConditions(includes(joinedField, form.getName()));
+        }
+
+        return selectQuery.fetch();
+    }
+
+    private Integer updateOrInsertAddress(de.rwth.idsg.steve.web.dto.Address address) {
+        if (address.isEmpty()) {
+            return null;
+        } else if (address.getAddressPk() == null) {
+            return addressRepository.insert(address);
+        } else {
+            addressRepository.update(address);
+            return address.getAddressPk();
+        }
+    }
+}

@@ -18,14 +18,25 @@
  */
 package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.dto.DbVersion;
-import de.rwth.idsg.steve.web.dto.Statistics;
+import jooq.steve.db.tables.records.WebUserRecord;
 
-public interface GenericRepository {
+public interface WebUserRepositoryV1  {
 
-    long getSystemTimeDifference();
+    void createUser(WebUserRecord user);
 
-    Statistics getStats();
+    void updateUser(WebUserRecord user);
 
-    DbVersion getDBVersion();
+    void deleteUser(String username);
+
+    void deleteUser(int webUserPk);
+
+    void changeStatusOfUser(String username, boolean enabled);
+
+    Integer getUserCountWithAuthority(String authority);
+
+    void changePassword(String username, String newPassword);
+
+    boolean userExists(String username);
+
+    WebUserRecord loadUserByUsername(String username);
 }

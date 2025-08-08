@@ -18,21 +18,18 @@
  */
 package de.rwth.idsg.steve.repository.impl;
 
-import de.rwth.idsg.steve.SteveException;
 import de.rwth.idsg.steve.repository.GenericRepository;
 import de.rwth.idsg.steve.repository.ReservationStatus;
 import de.rwth.idsg.steve.repository.dto.DbVersion;
 import de.rwth.idsg.steve.utils.DateTimeUtils;
 import de.rwth.idsg.steve.web.dto.Statistics;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.DatePart;
 import org.jooq.Field;
 import org.jooq.Record2;
 import org.jooq.Record8;
 import org.jooq.impl.DSL;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -50,37 +47,17 @@ import static jooq.steve.db.tables.User.USER;
 import static org.jooq.impl.DSL.max;
 import static org.jooq.impl.DSL.select;
 
-/**
- * @author Sevket Goekay <sevketgokay@gmail.com>
- * @since 14.08.2014
- */
-@Slf4j
 @Repository
+@RequiredArgsConstructor
 public class GenericRepositoryImpl implements GenericRepository {
 
     private final DSLContext ctx;
 
-    public GenericRepositoryImpl(DSLContext ctx) {
-        this.ctx = ctx;
-    }
-
-    @EventListener
-    public void afterStart(ContextRefreshedEvent event) {
-        checkJavaAndMySQLOffsets();
-    }
-
     @Override
-    public void checkJavaAndMySQLOffsets() {
-        long java = DateTimeUtils.getOffsetFromUtcInSeconds();
-
-        long sql = ctx.select(timestampDiff(DatePart.SECOND, utcTimestamp(), DSL.currentTimestamp()))
-                      .fetchOne()
-                      .getValue(0, Long.class);
-
-        if (sql != java) {
-            throw new SteveException("MySQL and Java are not using the same time zone. " +
-                "Java offset in seconds (%s) != MySQL offset in seconds (%s)", java, sql);
-        }
+    public long getSystemTimeDifference() {
+        return ctx.select(timestampDiff(DatePart.SECOND, utcTimestamp(), DSL.currentTimestamp()))
+                .fetchOne()
+                .getValue(0, Long.class);
     }
 
     @Override
@@ -91,49 +68,49 @@ public class GenericRepositoryImpl implements GenericRepository {
 
         Field<Integer> numChargeBoxes =
                 ctx.selectCount()
-                   .from(CHARGE_BOX)
-                   .asField("num_charge_boxes");
+                        .from(CHARGE_BOX)
+                        .asField("num_charge_boxes");
 
         Field<Integer> numOcppTags =
                 ctx.selectCount()
-                   .from(OCPP_TAG)
-                   .asField("num_ocpp_tags");
+                        .from(OCPP_TAG)
+                        .asField("num_ocpp_tags");
 
         Field<Integer> numUsers =
                 ctx.selectCount()
-                   .from(USER)
-                   .asField("num_users");
+                        .from(USER)
+                        .asField("num_users");
 
         Field<Integer> numReservations =
                 ctx.selectCount()
-                   .from(RESERVATION)
-                   .where(RESERVATION.EXPIRY_DATETIME.greaterThan(nowTime))
-                   .and(RESERVATION.STATUS.eq(ReservationStatus.ACCEPTED.name()))
-                   .asField("num_reservations");
+                        .from(RESERVATION)
+                        .where(RESERVATION.EXPIRY_DATETIME.greaterThan(nowTime))
+                        .and(RESERVATION.STATUS.eq(ReservationStatus.ACCEPTED.name()))
+                        .asField("num_reservations");
 
         Field<Integer> numTransactions =
                 ctx.selectCount()
-                   .from(TRANSACTION)
-                   .where(TRANSACTION.STOP_TIMESTAMP.isNull())
-                   .asField("num_transactions");
+                        .from(TRANSACTION)
+                        .where(TRANSACTION.STOP_TIMESTAMP.isNull())
+                        .asField("num_transactions");
 
         Field<Integer> heartbeatsToday =
                 ctx.selectCount()
-                   .from(CHARGE_BOX)
-                   .where(date(CHARGE_BOX.LAST_HEARTBEAT_TIMESTAMP).eq(nowDate))
-                   .asField("heartbeats_today");
+                        .from(CHARGE_BOX)
+                        .where(date(CHARGE_BOX.LAST_HEARTBEAT_TIMESTAMP).eq(nowDate))
+                        .asField("heartbeats_today");
 
         Field<Integer> heartbeatsYesterday =
                 ctx.selectCount()
-                   .from(CHARGE_BOX)
-                   .where(date(CHARGE_BOX.LAST_HEARTBEAT_TIMESTAMP).eq(yesterdaysNow))
-                   .asField("heartbeats_yesterday");
+                        .from(CHARGE_BOX)
+                        .where(date(CHARGE_BOX.LAST_HEARTBEAT_TIMESTAMP).eq(yesterdaysNow))
+                        .asField("heartbeats_yesterday");
 
         Field<Integer> heartbeatsEarlier =
                 ctx.selectCount()
-                   .from(CHARGE_BOX)
-                   .where(date(CHARGE_BOX.LAST_HEARTBEAT_TIMESTAMP).lessThan(yesterdaysNow))
-                   .asField("heartbeats_earlier");
+                        .from(CHARGE_BOX)
+                        .where(date(CHARGE_BOX.LAST_HEARTBEAT_TIMESTAMP).lessThan(yesterdaysNow))
+                        .asField("heartbeats_earlier");
 
         Record8<Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer> gs =
                 ctx.select(
@@ -148,29 +125,29 @@ public class GenericRepositoryImpl implements GenericRepository {
                 ).fetchOne();
 
         return Statistics.builder()
-                         .numChargeBoxes(gs.value1())
-                         .numOcppTags(gs.value2())
-                         .numUsers(gs.value3())
-                         .numReservations(gs.value4())
-                         .numTransactions(gs.value5())
-                         .heartbeatToday(gs.value6())
-                         .heartbeatYesterday(gs.value7())
-                         .heartbeatEarlier(gs.value8())
-                         .build();
+                .numChargeBoxes(gs.value1())
+                .numOcppTags(gs.value2())
+                .numUsers(gs.value3())
+                .numReservations(gs.value4())
+                .numTransactions(gs.value5())
+                .heartbeatToday(gs.value6())
+                .heartbeatYesterday(gs.value7())
+                .heartbeatEarlier(gs.value8())
+                .build();
     }
 
     @Override
     public DbVersion getDBVersion() {
         Record2<String, LocalDateTime> record = ctx.select(SCHEMA_VERSION.VERSION, SCHEMA_VERSION.INSTALLED_ON)
-                                              .from(SCHEMA_VERSION)
-                                              .where(SCHEMA_VERSION.INSTALLED_RANK.eq(
-                                                      select(max(SCHEMA_VERSION.INSTALLED_RANK)).from(SCHEMA_VERSION)))
-                                              .fetchOne();
+                .from(SCHEMA_VERSION)
+                .where(SCHEMA_VERSION.INSTALLED_RANK.eq(
+                        select(max(SCHEMA_VERSION.INSTALLED_RANK)).from(SCHEMA_VERSION)))
+                .fetchOne();
 
         String ts = DateTimeUtils.humanize(record.value2());
         return DbVersion.builder()
-                        .version(record.value1())
-                        .updateTimestamp(ts)
-                        .build();
+                .version(record.value1())
+                .updateTimestamp(ts)
+                .build();
     }
 }

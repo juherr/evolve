@@ -18,14 +18,17 @@
  */
 package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.dto.DbVersion;
-import de.rwth.idsg.steve.web.dto.Statistics;
+import de.rwth.idsg.steve.repository.dto.MailSettings;
+import de.rwth.idsg.steve.web.dto.SettingsForm;
 
-public interface GenericRepository {
-
-    long getSystemTimeDifference();
-
-    Statistics getStats();
-
-    DbVersion getDBVersion();
+/**
+ * @author Sevket Goekay <sevketgokay@gmail.com>
+ * @since 06.11.2015
+ */
+public interface SettingsRepositoryV1 {
+    SettingsForm getForm();
+    MailSettings getMailSettings();
+    int getHeartbeatIntervalInSeconds();
+    int getHoursToExpire();
+    void update(SettingsForm settingsForm);
 }

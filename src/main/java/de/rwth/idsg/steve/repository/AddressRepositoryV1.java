@@ -18,14 +18,19 @@
  */
 package de.rwth.idsg.steve.repository;
 
-import de.rwth.idsg.steve.repository.dto.DbVersion;
-import de.rwth.idsg.steve.web.dto.Statistics;
+import de.rwth.idsg.steve.web.dto.Address;
+import jooq.steve.db.tables.records.AddressRecord;
+import org.jetbrains.annotations.Nullable;
+import org.jooq.DSLContext;
+import org.jooq.Record1;
+import org.jooq.SelectConditionStep;
 
-public interface GenericRepository {
-
-    long getSystemTimeDifference();
-
-    Statistics getStats();
-
-    DbVersion getDBVersion();
+/**
+ * @author Sevket Goekay <sevketgokay@gmail.com>
+ * @since 24.11.2015
+ */
+public interface AddressRepositoryV1 {
+    @Nullable AddressRecord get(Integer addressPk);
+    @Nullable Integer updateOrInsert(Address address);
+    void delete(SelectConditionStep<Record1<Integer>> addressPkSelect);
 }

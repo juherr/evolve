@@ -18,25 +18,32 @@
  */
 package de.rwth.idsg.steve.service;
 
-import de.rwth.idsg.steve.repository.OcppTagRepository;
-import de.rwth.idsg.steve.repository.dto.OcppTag;
-import de.rwth.idsg.steve.web.dto.OcppTagQueryForm;
+import de.rwth.idsg.steve.SteveException;
+import de.rwth.idsg.steve.repository.GenericRepository;
+import de.rwth.idsg.steve.utils.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OcppTagService {
+public class GenericService {
 
-    private final OcppTagRepository ocppTagRepository;
+    private final GenericRepository genericRepository;
 
-    public List<OcppTag.OcppTagOverview> getOverview(OcppTagQueryForm form) {
-        // This method is now much simpler, as the complex query logic has been moved to the service.
-        // The service should be responsible for building the query, and the repository for executing it.
-        // However, since we are preparing for Spring Data, we will keep the query logic in the service for now.
-        // When we switch to Spring Data, we will use its query derivation capabilities.
-        return ocppTagRepository.getRecords();
+    @EventListener
+    public void afterStart(ContextRefreshedEvent event) {
+        checkJavaAndMySQLOffsets();
+    }
+
+    public void checkJavaAndMySQLOffsets() {
+        long java = DateTimeUtils.getOffsetFromUtcInSeconds();
+        long sql = genericRepository.getSystemTimeDifference();
+
+        if (sql != java) {
+            throw new SteveException("MySQL and Java are not using the same time zone. " +
+                    "Java offset in seconds (%s) != MySQL offset in seconds (%s)", java, sql);
+        }
     }
 }
