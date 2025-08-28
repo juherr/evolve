@@ -47,10 +47,6 @@
     </dependency>
     <dependency>
       <groupId>de.rwth.idsg</groupId>
-      <artifactId>steve-ui-jsp</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>de.rwth.idsg</groupId>
       <artifactId>steve-ocpp-soap</artifactId>
     </dependency>
     <dependency>
@@ -112,28 +108,25 @@
 
     <!-- Jetty related dependencies -->
     <dependency>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-webapp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.ee10.websocket</groupId>
+      <artifactId>jetty-ee10-websocket-jetty-server</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty.ee10</groupId>
-      <artifactId>jetty-ee10-webapp</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty.ee10</groupId>
-      <artifactId>jetty-ee10-annotations</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-rewrite</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty.ee10.websocket</groupId>
-      <artifactId>jetty-ee10-websocket-jetty-server</artifactId>
       <version>${jetty.version}</version>
     </dependency>
 
@@ -288,6 +281,27 @@
         <appender>CONSOLE</appender>
         <profile>dev</profile>
       </properties>
+    </profile>
+    <profile>
+      <id>with-jsp</id>
+      <dependencies>
+        <dependency>
+          <groupId>de.rwth.idsg</groupId>
+          <artifactId>steve-ui-jsp</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>with-thymeleaf</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>de.rwth.idsg</groupId>
+          <artifactId>steve-ui-thymeleaf</artifactId>
+        </dependency>
+      </dependencies>
     </profile>
   </profiles>
 </project>

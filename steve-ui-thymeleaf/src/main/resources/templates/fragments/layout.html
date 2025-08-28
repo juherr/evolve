@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header(pageTitle)">
+  <link rel="icon" th:href="@{/static/images/favicon.ico}" type="image/x-icon"/>
+  <link rel="shortcut icon" th:href="@{/static/images/favicon.ico}" type="image/x-icon"/>
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/jquery-ui/1.13.3/jquery-ui.min.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/jQuery-Timepicker-Addon/1.6.3/jquery-ui-timepicker-addon.min.css}">
+  <link rel="stylesheet" type="text/css" th:href="@{/static/css/style.css}">
+  <script type="text/javascript" th:src="@{/webjars/jquery/2.0.3/jquery.min.js}"></script>
+  <script type="text/javascript" th:src="@{/webjars/jquery-ui/1.13.3/jquery-ui.min.js}"></script>
+  <script type="text/javascript" th:src="@{/webjars/jQuery-Timepicker-Addon/1.6.3/jquery-ui-timepicker-addon.min.js}"></script>
+  <script type="text/javascript" th:src="@{/webjars/stupid-table-plugin/stupidtable.min.js}"></script>
+  <script type="text/javascript" th:src="@{/static/js/script.js}"></script>
+  <title th:text="${pageTitle} + ' - SteVe - Steckdosenverwaltung'">SteVe - Steckdosenverwaltung</title>
+</head>
+
+<body>
+
+<div th:fragment="page-header">
+  <div class="main">
+    <div class="top-banner">
+      <div class="container">
+        <a th:href="@{/manager/home}"><img th:src="@{/static/images/logo2.png}" height="80"></a>
+      </div>
+    </div>
+    <div class="top-menu">
+      <div class="container">
+        <ul class="navigation">
+          <li><a th:href="@{/manager/home}">HOME</a></li>
+          <li><a>DATA MANAGEMENT &raquo;</a>
+            <ul>
+              <li><a th:href="@{/manager/chargepoints}">CHARGE POINTS</a></li>
+              <li><a th:href="@{/manager/ocppTags}">OCPP TAGS</a></li>
+              <li><a th:href="@{/manager/users}">USERS</a></li>
+              <li><a th:href="@{/manager/chargingProfiles}">CHARGING PROFILES</a></li>
+              <li><a th:href="@{/manager/reservations}">RESERVATIONS</a></li>
+              <li><a th:href="@{/manager/transactions}">TRANSACTIONS</a></li>
+            </ul>
+          </li>
+          <li><a>OPERATIONS &raquo;</a>
+            <ul>
+              <li><a th:href="@{/manager/operations/v1.2}">OCPP v1.2</a></li>
+              <li><a th:href="@{/manager/operations/v1.5}">OCPP v1.5</a></li>
+              <li><a th:href="@{/manager/operations/v1.6}">OCPP v1.6</a></li>
+              <li><a th:href="@{/manager/operations/tasks}">Tasks</a></li>
+            </ul>
+          </li>
+          <li><a th:href="@{/manager/settings}">SETTINGS</a></li>
+          <li><a th:href="@{/manager/log}">LOG</a></li>
+          <li><a th:href="@{/manager/about}">ABOUT</a></li>
+          <li><a th:href="@{/manager/swagger-ui/index.html}">APIs</a></li>
+          <li><a th:href="@{/manager/signout}">SIGN OUT</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="main-wrapper">
+    </div>
+
+    <div th:fragment="footer">
+    </div>
+  </div>
+</body>
+</html>

@@ -83,12 +83,12 @@ public class OperationalTestSoapOCPP16 {
         path = getHttpPath(config);
 
         app = new Application(config, new LogFileRetriever());
-        app.start();
+        app.serverStart();
     }
 
     @AfterAll
     public static void destroyClass() throws Exception {
-        app.stop();
+        app.serverStop();
     }
 
     @BeforeEach

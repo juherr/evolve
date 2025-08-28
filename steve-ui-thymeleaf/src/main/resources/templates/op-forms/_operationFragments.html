@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="charge-point-selector-single">
+    <table class="userInput">
+        <tr>
+            <td style="vertical-align:top">Select one:</td>
+            <td>
+                <select th:field="*{chargePointSelectList}" size="5" multiple="false">
+                    <option th:each="cp : ${cpList}"
+                            th:value="${cp.ocppProtocol} + ';' + ${cp.chargeBoxId} + ';' + ${cp.endpointAddress}"
+                            th:label="${cp.chargeBoxId}"></option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <br/>
+</div>
+
+<div th:fragment="cancel-reservation-form">
+    <form th:action="@{/manager/operations/{opVersion}/CancelReservation(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-single}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>ID of the Existing Reservation:</td>
+                <td><select th:field="*{reservationId}" disabled="true"></select></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+</body>
+</html>
+<div th:fragment="charge-point-selector-multiple">
+    <table class="userInput">
+        <tr>
+            <td style="vertical-align:top">
+                <input type="button" value="Select All" onclick="selectAll(document.getElementById('chargePointSelectList'))"/>
+                <input type="button" value="Select None" onclick="selectNone(document.getElementById('chargePointSelectList'))"/>
+            </td>
+            <td>
+                <select id="chargePointSelectList" th:field="*{chargePointSelectList}" size="5" multiple="true">
+                    <option th:each="cp : ${cpList}"
+                            th:value="${cp.ocppProtocol} + ';' + ${cp.chargeBoxId} + ';' + ${cp.endpointAddress}"
+                            th:label="${cp.chargeBoxId}"></option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <br/>
+</div>
+
+<div th:fragment="change-availability-form">
+    <form th:action="@{/manager/operations/{opVersion}/ChangeAvailability(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Connector ID (integer):</td>
+                <td><input type="text" th:field="*{connectorId}" placeholder="if empty, 0 = charge point as a whole"/></td>
+            </tr>
+            <tr>
+                <td>Availability Type:</td>
+                <td>
+                    <select th:field="*{availType}">
+                        <option th:each="t : ${availTypes}" th:value="${t}" th:text="${t.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="change-configuration-form">
+    <form th:action="@{/manager/operations/{opVersion}/ChangeConfiguration(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Key Type:</td>
+                <td>
+                    <select th:field="*{keyType}">
+                        <option th:each="t : ${configurationKeyTypes}" th:value="${t}" th:text="${t.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Configuration Key:</td>
+                <td>
+                    <select th:field="*{confKey}">
+                        <option th:each="k : ${ocppConfKeys}" th:value="${k}" th:text="${k.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Custom Configuration Key:</td>
+                <td><input type="text" th:field="*{customConfKey}"/></td>
+            </tr>
+            <tr>
+                <td>Value:</td>
+                <td><input type="text" th:field="*{value}"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="clear-cache-form">
+    <form th:action="@{/manager/operations/{opVersion}/ClearCache(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td></td>
+                <td><i>No parameters required.</i></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="clear-charging-profile-form">
+    <form th:action="@{/manager/operations/{opVersion}/ClearChargingProfile(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Filter Type:</td>
+                <td>
+                    <select th:field="*{filterType}">
+                        <option th:each="t : ${filterType}" th:value="${t}" th:text="${t}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Charging Profile ID:</td>
+                <td>
+                    <select th:field="*{chargingProfilePk}">
+                        <option th:each="p : ${profileList}" th:value="${p.chargingProfilePk}" th:text="${p.itemDescription}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Connector ID (integer):</td>
+                <td><input type="text" th:field="*{connectorId}" placeholder="0 = charge point as a whole. Leave empty to not set."/></td>
+            </tr>
+            <tr>
+                <td>Charging Profile Purpose:</td>
+                <td>
+                    <select th:field="*{chargingProfilePurpose}">
+                        <option value="">-- Empty --</option>
+                        <option th:each="p : ${chargingProfilePurpose}" th:value="${p}" th:text="${p}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Stack Level (integer):</td>
+                <td><input type="text" th:field="*{stackLevel}"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="data-transfer-form">
+    <form th:action="@{/manager/operations/{opVersion}/DataTransfer(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Vendor ID (String):</td>
+                <td><input type="text" th:field="*{vendorId}"/></td>
+            </tr>
+            <tr>
+                <td>Message ID (String):</td>
+                <td><input type="text" th:field="*{messageId}" placeholder="optional"/></td>
+            </tr>
+            <tr>
+                <td>Data (Text):</td>
+                <td><textarea th:field="*{data}" placeholder="optional"></textarea></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="get-composite-schedule-form">
+    <form th:action="@{/manager/operations/{opVersion}/GetCompositeSchedule(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Connector ID (integer):</td>
+                <td><input type="text" th:field="*{connectorId}" placeholder="0 = charge point as a whole"/></td>
+            </tr>
+            <tr>
+                <td>Duration (in seconds):</td>
+                <td><input type="text" th:field="*{durationInSeconds}"/></td>
+            </tr>
+            <tr>
+                <td>Charging Rate Unit:</td>
+                <td>
+                    <select th:field="*{chargingRateUnit}">
+                        <option value="">-- Empty --</option>
+                        <option th:each="u : ${chargingRateUnits}" th:value="${u}" th:text="${u.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="get-configuration-form">
+    <form th:action="@{/manager/operations/{opVersion}/GetConfiguration(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td style="vertical-align:top">
+                    <input type="button" value="Select All" onclick="selectAll(document.getElementById('confKeyList'))"/>
+                    <input type="button" value="Select None" onclick="selectNone(document.getElementById('confKeyList'))"/>
+                    <div class="info"><b>Info:</b> If none selected, the charge point returns a list of <b>all</b> configuration settings.</div>
+                </td>
+                <td>
+                    <select id="confKeyList" th:field="*{confKeyList}" multiple="true" size="14">
+                        <option th:each="k : ${ocppConfKeys}"
+                                th:value="${k.key}"
+                                th:label="${k.value}"
+                                th:title="${k.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Custom Configuration Keys:</td>
+                <td><input type="text" th:field="*{commaSeparatedCustomConfKeys}" placeholder="optional comma separated list"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="get-diagnostics-form">
+    <form th:action="@{/manager/operations/{opVersion}/GetDiagnostics(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Location (directory URI):</td>
+                <td><input type="text" th:field="*{location}"/></td>
+            </tr>
+            <tr>
+                <td>Retries (integer):</td>
+                <td><input type="text" th:field="*{retries}" placeholder="optional"/></td>
+            </tr>
+            <tr>
+                <td>Retry Interval (integer):</td>
+                <td><input type="text" th:field="*{retryInterval}" placeholder="optional"/></td>
+            </tr>
+            <tr>
+                <td>Start Date/Time:</td>
+                <td><input type="text" th:field="*{start}" placeholder="optional" class="dateTimePicker"/></td>
+            </tr>
+            <tr>
+                <td>Stop Date/Time:</td>
+                <td><input type="text" th:field="*{stop}" placeholder="optional" class="dateTimePicker"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="get-local-list-form">
+    <form th:action="@{/manager/operations/{opVersion}/GetLocalListVersion(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td></td>
+                <td><i>No parameters required.</i></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="remote-start-transaction-form">
+    <form th:action="@{/manager/operations/{opVersion}/RemoteStartTransaction(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-single}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Connector ID:</td>
+                <td><select th:field="*{connectorId}" disabled="true"></select></td>
+            </tr>
+            <tr>
+                <td>OCPP ID Tag:</td>
+                <td>
+                    <select th:field="*{idTag}">
+                        <option th:each="t : ${idTagList}" th:value="${t}" th:text="${t}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="remote-stop-transaction-form">
+    <form th:action="@{/manager/operations/{opVersion}/RemoteStopTransaction(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-single}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>ID of the Active Transaction:</td>
+                <td><select th:field="*{transactionId}" disabled="true"></select></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="reserve-now-form">
+    <form th:action="@{/manager/operations/{opVersion}/ReserveNow(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-single}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Connector ID:</td>
+                <td><select th:field="*{connectorId}" disabled="true"></select></td>
+            </tr>
+            <tr>
+                <td>Expiry Date/Time:</td>
+                <td><input type="text" th:field="*{expiry}" class="dateTimePicker"/></td>
+            </tr>
+            <tr>
+                <td>OCPP ID Tag:</td>
+                <td>
+                    <select th:field="*{idTag}">
+                        <option th:each="t : ${idTagList}" th:value="${t}" th:text="${t}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="reset-form">
+    <form th:action="@{/manager/operations/{opVersion}/Reset(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Reset Type:</td>
+                <td>
+                    <select th:field="*{resetType}">
+                        <option th:each="t : ${resetTypes}" th:value="${t}" th:text="${t.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="send-local-list-form">
+    <form th:action="@{/manager/operations/{opVersion}/SendLocalList(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput sll">
+            <tr>
+                <td>Hash (String):</td>
+                <td><i>Optional, omitted for now</i></td>
+            </tr>
+            <tr>
+                <td>List Version (integer):</td>
+                <td><input type="text" th:field="*{listVersion}"/></td>
+            </tr>
+            <tr>
+                <td>Update Type:</td>
+                <td>
+                    <select id="updateType" th:field="*{updateType}">
+                        <option th:each="t : ${updateTypes}" th:value="${t}" th:text="${t.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Add/Update List:</td>
+                <td>
+                    <select id="addUpdateList" th:field="*{addUpdateList}" disabled="true" multiple="true">
+                        <option th:each="t : ${idTagList}" th:value="${t}" th:text="${t}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Delete List:</td>
+                <td>
+                    <select id="deleteList" th:field="*{deleteList}" disabled="true" multiple="true">
+                        <option th:each="t : ${idTagList}" th:value="${t}" th:text="${t}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Send empty list?:</td>
+                <td><input type="checkbox" th:field="*{sendEmptyListWhenFull}" id="sendEmptyListWhenFull"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><i>
+                    If selected and the update type is <b>FULL</b>, an empty list will be sent.<br/>
+                    As a result, the charge point will remove all idTags from its list.
+                </i></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="set-charging-profile-form">
+    <form th:action="@{/manager/operations/{opVersion}/SetChargingProfile(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Charging Profile ID:</td>
+                <td>
+                    <select th:field="*{chargingProfilePk}">
+                        <option th:each="p : ${profileList}" th:value="${p.chargingProfilePk}" th:text="${p.itemDescription}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Connector ID (integer):</td>
+                <td><input type="text" th:field="*{connectorId}" placeholder="0 = charge point as a whole"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="trigger-message-form">
+    <form th:action="@{/manager/operations/{opVersion}/TriggerMessage(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Trigger Message:</td>
+                <td>
+                    <select th:field="*{triggerMessage}">
+                        <option th:each="t : ${triggerMessages}" th:value="${t}" th:text="${t.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Connector ID (integer):</td>
+                <td><input type="text" th:field="*{connectorId}" placeholder="if empty, charge point as a whole"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="unlock-connector-form">
+    <form th:action="@{/manager/operations/{opVersion}/UnlockConnector(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-single}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Connector ID:</td>
+                <td><select th:field="*{connectorId}" disabled="true"></select></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div th:fragment="update-firmware-form">
+    <form th:action="@{/manager/operations/{opVersion}/UpdateFirmware(opVersion=${opVersion})}" th:object="${params}" method="post">
+        <section><span th:text="'Charge Points with OCPP ' + ${opVersion}"></span></section>
+        <div th:replace="~{op-forms/_operationFragments :: charge-point-selector-multiple}"></div>
+        <section><span>Parameters</span></section>
+        <table class="userInput">
+            <tr>
+                <td>Location (directory URI):</td>
+                <td><input type="text" th:field="*{location}"/></td>
+            </tr>
+            <tr>
+                <td>Retries (integer):</td>
+                <td><input type="text" th:field="*{retries}" placeholder="optional"/></td>
+            </tr>
+            <tr>
+                <td>Retry Interval (integer):</td>
+                <td><input type="text" th:field="*{retryInterval}" placeholder="optional"/></td>
+            </tr>
+            <tr>
+                <td>Retrieve Date/Time:</td>
+                <td><input type="text" th:field="*{retrieve}" class="dateTimePicker"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><div class="submit-button"><input type="submit" value="Perform"/></div></td>
+            </tr>
+        </table>
+    </form>
+</div>

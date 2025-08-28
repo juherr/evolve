@@ -61,11 +61,11 @@ public abstract class StressTest {
 
         var app = new Application(config, new LogFileRetriever());
         try {
-            app.start();
+            app.serverStart();
             attackInternal();
         } finally {
             try {
-                app.stop();
+                app.serverStop();
             } finally {
                 __DatabasePreparer__.cleanUp();
             }

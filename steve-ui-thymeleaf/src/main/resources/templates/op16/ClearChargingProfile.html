@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('OCPP ' + ${opVersion} + ' - Clear Charging Profile')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+<div th:replace="~{fragments/common :: bind-errors('params')}"></div>
+
+<div class="content">
+    <div th:replace="~{op-layouts/_operationLayout :: operation-layout(opVersion=${opVersion}, activePage='ClearChargingProfile', pageContent=~{:: .op-content})}">
+        <div class="op-content">
+            <div th:replace="~{op-forms/_operationFragments :: clear-charging-profile-form}"></div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

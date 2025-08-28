@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Charge Point Details')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div th:replace="~{fragments/common :: bind-errors('chargePointForm')}"></div>
+
+<div class="content">
+    <div>
+        <section><span>
+            Charge Point Details
+            <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                <span>Read-only fields are updated by the charge point.</span>
+            </a>
+        </span></section>
+
+        <table class="userInput">
+            <thead><tr><th>Related Data Pages</th><th></th></tr></thead>
+            <tbody>
+            <tr>
+                <td>Transactions:</td>
+                <td>
+                    <a th:href="@{/manager/transactions/query(chargeBoxId=${chargePointForm.chargeBoxId}, type='ACTIVE')}">ACTIVE</a>
+                    /
+                    <a th:href="@{/manager/transactions/query(chargeBoxId=${chargePointForm.chargeBoxId}, type='ALL')}">ALL</a>
+                </td>
+            </tr>
+            <tr>
+                <td>Reservations:</td>
+                <td>
+                    <a th:href="@{/manager/reservations/query(chargeBoxId=${chargePointForm.chargeBoxId}, periodType='ACTIVE')}">ACTIVE</a>
+                </td>
+            </tr>
+            <tr>
+                <td>Connector Status:</td>
+                <td>
+                    <a th:href="@{/manager/home/connectorStatus/query(chargeBoxId=${chargePointForm.chargeBoxId})}">ALL</a>
+                </td>
+            </tr>
+            <tr>
+                <td>Charging Profiles:</td>
+                <td>
+                    <a th:href="@{/manager/chargingProfiles/assignments(chargeBoxId=${chargePointForm.chargeBoxId})}">ALL</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <form th:action="@{/manager/chargepoints/update}" th:object="${chargePointForm}" method="post">
+
+            <input type="hidden" th:field="*{chargeBoxPk}" />
+            <table class="userInput">
+                <thead><tr><th>OCPP</th><th></th></tr></thead>
+                <tbody>
+                <tr>
+                    <td>ChargeBox ID:</td>
+                    <td>
+                        <input type="text" th:field="*{chargeBoxId}" readonly="true" />
+                        <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                            <span>This field is set when adding a charge point, and cannot be changed later</span>
+                        </a>
+                    </td>
+                </tr>
+                <tr><td>Endpoint Address:</td><td th:text="${cp.chargeBox.endpointAddress}"></td></tr>
+                <tr><td>Ocpp Protocol:</td><td th:text="${cp.chargeBox.ocppProtocol}"></td></tr>
+                <tr><td>Charge Point Vendor:</td><td th:text="${cp.chargeBox.chargePointVendor}"></td></tr>
+                <tr><td>Charge Point Model:</td><td th:text="${cp.chargeBox.chargePointModel}"></td></tr>
+                <tr><td>Charge Point Serial Number:</td><td th:text="${cp.chargeBox.chargePointSerialNumber}"></td></tr>
+                <tr><td>Charge Box Serial Number:</td><td th:text="${cp.chargeBox.chargeBoxSerialNumber}"></td></tr>
+                <tr><td>Firmware Version:</td><td th:text="${cp.chargeBox.fwVersion}"></td></tr>
+                <tr><td>Firmware Update Timestamp:</td><td th:text="${cp.chargeBox.fwUpdateTimestamp}"></td></tr>
+                <tr><td>Iccid:</td><td th:text="${cp.chargeBox.iccid}"></td></tr>
+                <tr><td>Imsi:</td><td th:text="${cp.chargeBox.imsi}"></td></tr>
+                <tr><td>Meter Type:</td><td th:text="${cp.chargeBox.meterType}"></td></tr>
+                <tr><td>Meter Serial Number:</td><td th:text="${cp.chargeBox.meterSerialNumber}"></td></tr>
+                <tr><td>Diagnostics Status:</td><td th:text="${cp.chargeBox.diagnosticsStatus}"></td></tr>
+                <tr><td>Diagnostics Timestamp:</td><td th:text="${cp.chargeBox.diagnosticsTimestamp}"></td></tr>
+                <tr><td>Last Heartbeat Timestamp:</td><td th:text="${cp.chargeBox.lastHeartbeatTimestamp}"></td></tr>
+                <tr>
+                    <td>Insert connector status after start/stop transaction:</td>
+                    <td>
+                        <input type="checkbox" th:field="*{insertConnectorStatusAfterTransactionMsg}"/>
+                        <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                            <span>After a transaction start/stop message, a charging station might send a connector status notification, but it is not required. If this is enabled, SteVe will update the connector status no matter what.</span>
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Registration status:</td>
+                    <td>
+                        <select th:field="*{registrationStatus}">
+                            <option th:each="s : ${registrationStatusList}" th:value="${s}" th:text="${s}"></option>
+                        </select>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <input type="hidden" th:field="*{address.addressPk}" />
+            <div th:replace="~{data-man/_chargepointFragments :: address-form}"></div>
+            <div th:replace="~{data-man/_chargepointFragments :: misc-form(submitName='update', submitValue='Update')}"></div>
+
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

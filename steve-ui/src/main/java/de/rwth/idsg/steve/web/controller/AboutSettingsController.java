@@ -27,6 +27,7 @@ import de.rwth.idsg.steve.service.ReleaseCheckService;
 import de.rwth.idsg.steve.web.dto.EndpointInfo;
 import de.rwth.idsg.steve.web.dto.SettingsForm;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -44,6 +45,7 @@ import jakarta.validation.Valid;
  *
  * @author Sevket Goekay <sevketgokay@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping(value = "/manager")
 @RequiredArgsConstructor
@@ -76,6 +78,7 @@ public class AboutSettingsController {
         model.addAttribute("systemTime", Instant.now());
         model.addAttribute("systemTimeZone", ZoneId.systemDefault());
         model.addAttribute("releaseReport", releaseCheckService.check());
+        log.warn(info.toString());
         model.addAttribute("endpointInfo", info);
         return "about";
     }

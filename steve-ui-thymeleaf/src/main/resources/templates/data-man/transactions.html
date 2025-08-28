@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Transactions')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div th:replace="~{fragments/common :: bind-errors('params')}"></div>
+
+<div class="content">
+    <section><span>
+        Transactions
+        <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+            <span>If stop date/time and stop value are empty, this means that a transaction is still active
+                (i.e. it has started but not stopped yet or the charging station did not inform SteVe about the stopped transaction yet).</span>
+        </a>
+    </span></section>
+    <form th:action="@{/manager/transactions/query}" method="get" th:object="${params}">
+        <table class="userInput">
+            <tr>
+                <td>Transaction ID:</td>
+                <td><input type="text" th:field="*{transactionPk}"/></td>
+            </tr>
+            <tr>
+                <td>ChargeBox ID:</td>
+                <td>
+                    <select th:field="*{chargeBoxId}">
+                        <option value="">All</option>
+                        <option th:each="cp : ${cpList}" th:value="${cp}" th:text="${cp}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>OCPP ID Tag:</td>
+                <td>
+                    <select th:field="*{ocppIdTag}">
+                        <option value="">All</option>
+                        <option th:each="tag : ${idTagList}" th:value="${tag}" th:text="${tag}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Transaction Type:</td>
+                <td>
+                    <select th:field="*{type}">
+                        <option th:each="t : ${queryTypes}" th:value="${t}" th:text="${t.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Period Type:</td>
+                <td>
+                    <select th:field="*{periodType}" id="periodTypeSelect">
+                        <option th:each="pt : ${queryPeriodTypes}" th:value="${pt}" th:text="${pt.value}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>From:</td>
+                <td><input type="text" th:field="*{from}" id="intervalPeriodTypeFrom" class="dateTimePicker"/></td>
+            </tr>
+            <tr>
+                <td>To:</td>
+                <td><input type="text" th:field="*{to}" id="intervalPeriodTypeTo" class="dateTimePicker"/></td>
+            </tr>
+            <tr>
+                <td>Get as CSV?:</td>
+                <td><input type="checkbox" th:field="*{returnCSV}"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td id="add_space">
+                    <input type="submit" value="Get">
+                </td>
+            </tr>
+        </table>
+    </form>
+    <br>
+
+    <table class="res action">
+        <thead>
+        <tr>
+            <th data-sort="int">Transaction ID</th>
+            <th data-sort="string">ChargeBox ID</th>
+            <th data-sort="int">Connector ID</th>
+            <th data-sort="string">OCPP ID Tag</th>
+            <th data-sort="date">Start Date/Time</th>
+            <th data-sort="int">Start Value</th>
+            <th data-sort="date">Stop Date/Time</th>
+            <th data-sort="int">Stop Value</th>
+            <th data-sort="string">Stop Reason</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ta : ${transList}">
+            <td><a th:href="@{/manager/transactions/details/{id}(id=${ta.id})}" th:text="${ta.id}"></a></td>
+            <td><a th:href="@{/manager/chargepoints/details/{pk}(pk=${ta.chargeBoxPk})}" th:text="${ta.chargeBoxId}"></a></td>
+            <td th:text="${ta.connectorId}"></td>
+            <td><a th:href="@{/manager/ocppTags/details/{pk}(pk=${ta.ocppTagPk})}" th:text="${ta.ocppIdTag}"></a></td>
+            <td th:data-sort-value="${ta.startTimestamp?.toEpochMilli()}" th:text="${ta.startTimestampFormatted}"></td>
+            <td th:text="${ta.startValue}"></td>
+            <td th:data-sort-value="${ta.stopTimestamp?.toEpochMilli()}" th:text="${ta.stopTimestampFormatted}"></td>
+            <td th:text="${ta.stopValue}"></td>
+            <td th:text="${ta.stopReason}"></td>
+            <td>
+                <form th:if="${ta.stopValue == null}" th:action="@{/manager/transactions/stop/{id}(id=${ta.id})}" method="post">
+                    <input type="submit" class="redSubmit" title="Manually set this transaction from 'active' to 'stopped'. The actual transaction is not affected by this!" value="Stop">
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <br>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // from dateTimePicker-past.js
+        $('.dateTimePicker').datetimepicker({
+            dateFormat: 'yy-mm-dd'
+            //, maxDateTime: new Date()
+        });
+
+        // from periodTypeSelect.js
+        var ptSel = $("#periodTypeSelect");
+        function togglePeriodType(ptSel) {
+            if (ptSel.find("option:selected").text() == "From/To") {
+                $("#intervalPeriodTypeFrom").prop("disabled", false);
+                $("#intervalPeriodTypeTo").prop("disabled", false);
+            } else {
+                $("#intervalPeriodTypeFrom").prop("disabled", true);
+                $("#intervalPeriodTypeTo").prop("disabled", true);
+            }
+        }
+
+        togglePeriodType(ptSel);
+        ptSel.change(function() {
+            togglePeriodType(ptSel);
+        });
+
+        // from sortable.js
+        var table = $(".res").stupidtable({
+            "date": function (a, b) {
+                var aDate = (parseInt(a) || 0);
+                var bDate = (parseInt(b) || 0);
+                return aDate - bDate;
+            }
+        });
+
+        table.on("aftertablesort", function (event, data) {
+            var th = $(this).find("th");
+            th.find(".arrow").remove();
+            var dir = $.fn.stupidtable.dir;
+
+            // https://en.wikipedia.org/wiki/Geometric_Shapes
+            var arrow = data.direction === dir.ASC ? "&#9650;" : "&#9660;";
+            th.eq(data.column).append('<span class="arrow" style="float: right">' + arrow + '</span>');
+        });
+    });
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

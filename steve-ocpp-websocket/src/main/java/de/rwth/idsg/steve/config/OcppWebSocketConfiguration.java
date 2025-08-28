@@ -19,6 +19,7 @@
 package de.rwth.idsg.steve.config;
 
 import com.google.common.collect.Lists;
+import de.rwth.idsg.steve.SteveConfiguration;
 import de.rwth.idsg.steve.ocpp.ws.OcppWebSocketHandshakeHandler;
 import de.rwth.idsg.steve.ocpp.ws.ocpp12.Ocpp12WebSocketEndpoint;
 import de.rwth.idsg.steve.ocpp.ws.ocpp15.Ocpp15WebSocketEndpoint;
@@ -45,13 +46,13 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class OcppWebSocketConfiguration implements WebSocketConfigurer {
 
-    public static final String PATH_INFIX = "/websocket/CentralSystemService/";
-    public static final Duration PING_INTERVAL = Duration.ofMinutes(15);
-    public static final Duration IDLE_TIMEOUT = Duration.ofHours(2);
-    public static final int MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
+    public static final Duration WS_PING_INTERVAL = Duration.ofMinutes(15);
+    public static final Duration WS_IDLE_TIMEOUT = Duration.ofHours(2);
+    public static final int WS_MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
 
     private final ChargePointRegistrationService chargePointRegistrationService;
     private final ChargeBoxIdValidator chargeBoxIdValidator;
+    private final SteveConfiguration config;
 
     private final Ocpp12WebSocketEndpoint ocpp12WebSocketEndpoint;
     private final Ocpp15WebSocketEndpoint ocpp15WebSocketEndpoint;
@@ -60,13 +61,16 @@ public class OcppWebSocketConfiguration implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 
-        OcppWebSocketHandshakeHandler handshakeHandler = new OcppWebSocketHandshakeHandler(
+        var handshakeHandler = new OcppWebSocketHandshakeHandler(
                 chargeBoxIdValidator,
                 new DefaultHandshakeHandler(),
                 Lists.newArrayList(ocpp16WebSocketEndpoint, ocpp15WebSocketEndpoint, ocpp12WebSocketEndpoint),
-                chargePointRegistrationService);
+                chargePointRegistrationService,
+                config.getPaths().getWsPathInfix() + "/");
 
-        registry.addHandler(handshakeHandler.getDummyWebSocketHandler(), PATH_INFIX + "*")
+        registry.addHandler(
+                        handshakeHandler.getDummyWebSocketHandler(),
+                        config.getPaths().getWsPathInfix() + "/*")
                 .setHandshakeHandler(handshakeHandler)
                 .setAllowedOrigins("*");
     }

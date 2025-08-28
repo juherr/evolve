@@ -58,13 +58,13 @@ public class ApplicationTest {
         path = getHttpPath(config);
 
         app = new Application(config, new LogFileRetriever());
-        app.start();
+        app.serverStart();
     }
 
     @AfterAll
     public static void destroy() throws Exception {
         if (app != null) {
-            app.stop();
+            app.serverStop();
         }
         __DatabasePreparer__.cleanUp();
     }
