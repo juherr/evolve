@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Connector Status')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div>
+        <section><span>
+            Connector Status
+            <a class="tooltip" href="#"><img th:src="@{/static/images/info.png}" style="vertical-align:middle">
+                <span>Last status information and corresponding date/time of connectors received from charging stations.
+                    The OCPP term 'connector' refers to the charging socket of a station.</span>
+            </a>
+        </span></section>
+
+        <form th:action="@{/manager/home/connectorStatus/query}" method="get" th:object="${params}">
+            <table class="userInput">
+                <tr>
+                    <td>ChargeBox ID:</td>
+                    <td>
+                        <select th:field="*{chargeBoxId}">
+                            <option value="">All</option>
+                            <option th:each="cp : ${cpList}" th:value="${cp}" th:text="${cp}"></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td>
+                        <select th:field="*{status}">
+                            <option value="">All</option>
+                            <option th:each="s : ${statusValues}" th:value="${s}" th:text="${s}"></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td id="add_space">
+                        <input type="submit" value="Get">
+                    </td>
+                </tr>
+            </table>
+        </form>
+        <br>
+
+        <table class="res" id="connectorStatusTable">
+            <thead>
+            <tr>
+                <th data-sort="string">ChargeBox ID</th>
+                <th data-sort="int">Connector ID</th>
+                <th data-sort="date">Date/Time</th>
+                <th data-sort="string">Status</th>
+                <th data-sort="string">Error Code</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cs : ${connectorStatusList}">
+                <td>
+                    <a th:href="@{/manager/chargepoints/details/{pk}(pk=${cs.chargeBoxPk})}" th:text="${cs.chargeBoxId}"></a>
+                    <a th:if="${cs.jsonAndDisconnected}" class="tooltip" href="#"><img th:src="@{/static/images/offline-icon.svg}" style="height: 1em">
+                        <span>This JSON charge point is currently disconnected. The status information of its
+                            connectors might be not up-to-date.</span>
+                    </a>
+                </td>
+                <td th:text="${cs.connectorId}"></td>
+                <td th:data-sort-value="${cs.statusTimestamp.toEpochMilli()}" th:text="${cs.timeStamp}"></td>
+                <td th:text="${cs.status}"></td>
+                <td th:text="${cs.errorCode}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var table = $(".res").stupidtable({
+            "date": function (a, b) {
+                var aDate = (parseInt(a) || 0);
+                var bDate = (parseInt(b) || 0);
+                return aDate - bDate;
+            }
+        });
+
+        table.on("aftertablesort", function (event, data) {
+            var th = $(this).find("th");
+            th.find(".arrow").remove();
+            var dir = $.fn.stupidtable.dir;
+
+            // https://en.wikipedia.org/wiki/Geometric_Shapes
+            var arrow = data.direction === dir.ASC ? "&#9650;" : "&#9660;";
+            th.eq(data.column).append('<span class="arrow" style="float: right">' + arrow + '</span>');
+        });
+    });
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

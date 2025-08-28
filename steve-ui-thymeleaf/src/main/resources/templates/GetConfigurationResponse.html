@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Get Configuration Response')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div>
+        <section><span th:text="'GetConfigurationResponse from ' + ${chargeBoxId}"></span></section>
+        <div th:if="${not #lists.isEmpty(response.unknownKeys)}" class="warning">
+            <b>Unknown keys:</b> <span th:text="${response.unknownKeys}"></span>
+        </div>
+        <br th:if="${not #lists.isEmpty(response.unknownKeys)}">
+
+        <table class="res">
+            <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Read only?</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="element : ${response.configurationKeys}">
+                <td th:text="${element.key}"></td>
+                <td th:text="${element.value}"></td>
+                <td th:text="${element.readonly}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

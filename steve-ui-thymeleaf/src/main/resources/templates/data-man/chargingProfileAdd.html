@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Add Charging Profile')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div th:replace="~{fragments/common :: bind-errors('form')}"></div>
+
+<div class="content">
+    <div>
+        <section><span>Add Charging Profile</span></section>
+        <form th:action="@{/manager/chargingProfiles/add}" th:object="${form}" method="post">
+            <div th:replace="~{data-man/_chargingProfileFragments :: profile-form(submitName='add', submitValue='Add')}"></div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        // from dateTimePicker.js
+        $('.dateTimePicker').datetimepicker({
+            dateFormat: 'yy-mm-dd'
+        });
+
+        // from schedulePeriodsTable.js
+        $('#periodsTable').on('click', '.removeRow', function() {
+            $(this).closest("tr").remove();
+        });
+
+        $('#addRow').click(function () {
+            // use prefix for new rows to be at the end when ordered
+            var id = "zz" + Date.now();
+            var startPeriodInSeconds = "<td><input id=\"schedulePeriodMap" + id + ".startPeriodInSeconds\" name=\"schedulePeriodMap[" + id + "].startPeriodInSeconds\" type=\"text\" value=\"\"/></td>";
+            var powerLimit = "<td><input id=\"schedulePeriodMap" + id + ".powerLimit\" name=\"schedulePeriodMap[" + id + "].powerLimit\" type=\"text\" value=\"\"/></td>";
+            var numberPhases = "<td><input id=\"schedulePeriodMap" + id + ".numberPhases\" name=\"schedulePeriodMap[" + id + "].numberPhases\" type=\"text\" value=\"\" placeholder=\"if empty, 3 will be assumed\"/></td>";
+            var deleteButton = "<td><input type=\"button\" class=\"removeRow\" value=\"Delete\"></td>";
+            var row = "<tr id=" + id + ">" + startPeriodInSeconds + powerLimit + numberPhases + deleteButton + "</tr>";
+
+            $('#periodsTable tbody').append(row);
+        });
+    });
+</script>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

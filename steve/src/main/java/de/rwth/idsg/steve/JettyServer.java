@@ -21,6 +21,7 @@ package de.rwth.idsg.steve;
 import de.rwth.idsg.steve.utils.LogFileRetriever;
 import de.rwth.idsg.steve.web.dto.EndpointInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServerContainer;
 import org.eclipse.jetty.http.HttpScheme;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
@@ -34,7 +35,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ScheduledExecutorScheduler;
-import org.jspecify.annotations.Nullable;
+import org.eclipse.jetty.websocket.core.WebSocketConstants;
 
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
@@ -44,7 +45,6 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,20 +52,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+
+import static de.rwth.idsg.steve.config.OcppWebSocketConfiguration.WS_IDLE_TIMEOUT;
+import static de.rwth.idsg.steve.config.OcppWebSocketConfiguration.WS_MAX_MSG_SIZE;
 
 /**
  * @author Sevket Goekay <sevketgokay@gmail.com>
  * @since 12.12.2014
  */
 @Slf4j
-public class JettyServer {
-
-    private final SteveConfiguration config;
-    private final LogFileRetriever logFileRetriever;
-    private final EndpointInfo info;
-
-    private @Nullable Server server;
-    private SteveAppContext steveAppContext;
+public class JettyServer extends Server {
 
     private static final int MIN_THREADS = 4;
     private static final int MAX_THREADS = 50;
@@ -73,31 +71,34 @@ public class JettyServer {
     private static final long STOP_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
     private static final long IDLE_TIMEOUT = TimeUnit.MINUTES.toMillis(1);
 
+    private final SteveConfiguration config;
+    private final LogFileRetriever logFileRetriever;
+
     public JettyServer(SteveConfiguration config, LogFileRetriever logFileRetriever) {
+        super(createThreadPool());
         this.config = config;
         this.logFileRetriever = logFileRetriever;
-        this.info = new EndpointInfo(config);
+        this.addEventListener(updateWsDefault());
+    }
+
+    private static QueuedThreadPool createThreadPool() {
+        // === jetty.xml ===
+        var threadPool = new QueuedThreadPool();
+        threadPool.setMinThreads(MIN_THREADS);
+        threadPool.setMaxThreads(MAX_THREADS);
+        return threadPool;
     }
 
     /**
      * A fully configured Jetty Server instance
      */
-    private void prepare() {
-
-        // === jetty.xml ===
-        // Setup Threadpool
-        QueuedThreadPool threadPool = new QueuedThreadPool();
-        threadPool.setMinThreads(MIN_THREADS);
-        threadPool.setMaxThreads(MAX_THREADS);
-
-        // Server
-        server = new Server(threadPool);
-
+    @Override
+    public void doStart() throws Exception {
         // Scheduler
-        server.addBean(new ScheduledExecutorScheduler());
+        this.addBean(new ScheduledExecutorScheduler());
 
         // HTTP Configuration
-        HttpConfiguration httpConfig = new HttpConfiguration();
+        var httpConfig = new HttpConfiguration();
         httpConfig.setSecureScheme(HttpScheme.HTTPS.asString());
         httpConfig.setSecurePort(config.getJetty().getHttpsPort());
         httpConfig.setOutputBufferSize(32768);
@@ -112,106 +113,109 @@ public class JettyServer {
         httpConfig.addCustomizer(new ForwardedRequestCustomizer());
 
         // Extra options
-        server.setDumpAfterStart(false);
-        server.setDumpBeforeStop(false);
-        server.setStopAtShutdown(true);
-        server.setStopTimeout(STOP_TIMEOUT);
+        this.setDumpAfterStart(false);
+        this.setDumpBeforeStop(false);
+        this.setStopAtShutdown(true);
+        this.setStopTimeout(STOP_TIMEOUT);
 
         if (config.getJetty().isHttpEnabled()) {
-            server.addConnector(httpConnector(httpConfig));
+            this.addConnector(createHttpConnector(
+                    this, config.getJetty().getServerHost(), config.getJetty().getHttpPort(), httpConfig));
         }
 
         if (config.getJetty().isHttpsEnabled()) {
-            server.addConnector(httpsConnector(httpConfig));
+            this.addConnector(createHttpsConnector(
+                    this,
+                    config.getJetty().getServerHost(),
+                    config.getJetty().getHttpPort(),
+                    httpConfig,
+                    config.getJetty().getKeyStorePath(),
+                    config.getJetty().getKeyStorePassword()));
         }
 
-        steveAppContext = new SteveAppContext(config, logFileRetriever, info);
-        server.setHandler(steveAppContext.getHandlers());
+        var info = new EndpointInfo(config);
+        populateInfo(info);
+
+        var steveAppContext = new SteveAppContext(config, logFileRetriever, info);
+        this.setHandler(steveAppContext.createHandlers());
+
+        super.doStart();
     }
 
-    private ServerConnector httpConnector(HttpConfiguration httpconfig) {
+    private void populateInfo(EndpointInfo info) {
+        var list = Arrays.stream(getConnectors())
+                .map(c -> getConnectorPath(
+                        config.getJetty().getServerHost(), config.getPaths().getContextPath(), c))
+                .flatMap(ips -> ips.entrySet().stream())
+                .toList();
+        setList(
+                list,
+                isSecured -> Boolean.TRUE.equals(isSecured) ? "https" : "http",
+                info.getWebInterface(),
+                info.getOcppSoap());
+        setList(list, isSecured -> Boolean.TRUE.equals(isSecured) ? "wss" : "ws", info.getOcppWebSocket());
+    }
+
+    private static ServerConnector createHttpConnector(
+            Server server, String host, int port, HttpConfiguration httpconfig) {
         // === jetty-http.xml ===
-        ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpconfig));
-        http.setHost(config.getJetty().getServerHost());
-        http.setPort(config.getJetty().getHttpPort());
+        var http = new ServerConnector(server, new HttpConnectionFactory(httpconfig));
+        http.setHost(host);
+        http.setPort(port);
         http.setIdleTimeout(IDLE_TIMEOUT);
         return http;
     }
 
-    private ServerConnector httpsConnector(HttpConfiguration httpconfig) {
+    private ServerConnector createHttpsConnector(
+            Server server,
+            String host,
+            int port,
+            HttpConfiguration httpConfig,
+            String keyStorePath,
+            String keyStorePassword) {
         // === jetty-https.xml ===
         // SSL Context Factory
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-        sslContextFactory.setKeyStorePath(config.getJetty().getKeyStorePath());
-        sslContextFactory.setKeyStorePassword(config.getJetty().getKeyStorePassword());
-        sslContextFactory.setKeyManagerPassword(config.getJetty().getKeyStorePassword());
+        var sslContextFactory = new SslContextFactory.Server();
+        sslContextFactory.setKeyStorePath(keyStorePath);
+        sslContextFactory.setKeyStorePassword(keyStorePassword);
+        sslContextFactory.setKeyManagerPassword(keyStorePassword);
 
         // SSL HTTP Configuration
-        HttpConfiguration httpsConfig = new HttpConfiguration(httpconfig);
+        var httpsConfig = new HttpConfiguration(httpConfig);
         httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
         // SSL Connector
-        ServerConnector https = new ServerConnector(
+        var https = new ServerConnector(
                 server,
                 new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
                 new HttpConnectionFactory(httpsConfig));
-        https.setHost(config.getJetty().getServerHost());
-        https.setPort(config.getJetty().getHttpsPort());
+        https.setHost(host);
+        https.setPort(port);
         https.setIdleTimeout(IDLE_TIMEOUT);
         return https;
     }
 
     /**
-     * Starts the Jetty Server instance
+     * Otherwise, defaults come from {@link WebSocketConstants}
      */
-    public void start() throws Exception {
-        prepare();
-
-        if (server != null) {
-            server.start();
-            steveAppContext.configureWebSocket();
-            populateEndpointInfo();
-        }
+    private static ServletContextListener updateWsDefault() {
+        return new ServletContextListener() {
+            @Override
+            public void contextInitialized(ServletContextEvent sce) {
+                var container = JettyWebSocketServerContainer.getContainer(sce.getServletContext());
+                container.setMaxTextMessageSize(WS_MAX_MSG_SIZE);
+                container.setIdleTimeout(WS_IDLE_TIMEOUT);
+            }
+        };
     }
 
-    /**
-     * Join the server thread with the current thread
-     */
-    public void join() throws Exception {
-        if (server != null) {
-            server.join();
-        }
-    }
-
-    public void stop() throws Exception {
-        if (server != null) {
-            server.stop();
-        }
-    }
-
-    public boolean isStarted() {
-        return server != null && server.isStarted();
-    }
-
-    public void populateEndpointInfo() {
-        if (server == null) {
-            return;
-        }
-        var list = Arrays.stream(server.getConnectors())
-                .map(this::getConnectorPath)
-                .flatMap(ips -> ips.entrySet().stream())
-                .toList();
-        setList(list, isSecured -> isSecured ? "https" : "http", info.getWebInterface(), info.getOcppSoap());
-        setList(list, isSecured -> isSecured ? "wss" : "ws", info.getOcppWebSocket());
-    }
-
-    private Map<String, Boolean> getConnectorPath(Connector c) {
+    private static Map<String, Boolean> getConnectorPath(String serverHost, String contextPath, Connector c) {
         var sc = (ServerConnector) c;
 
         var isSecure = sc.getDefaultConnectionFactory() instanceof SslConnectionFactory;
-        var layout = "://%s:%d" + config.getPaths().getContextPath();
+        var layout = "://%s:%d" + contextPath;
 
-        return getIps(sc, config.getJetty().getServerHost()).stream()
+        return getIps(sc, serverHost).stream()
                 .map(k -> String.format(layout, k, sc.getPort()))
                 .collect(HashMap::new, (m, v) -> m.put(v, isSecure), HashMap::putAll);
     }
@@ -241,8 +245,8 @@ public class JettyServer {
      * Uses different APIs to find out the IP of this machine.
      */
     private static List<String> getPossibleIpAddresses(String serverHost) {
-        final String host = "treibhaus.informatik.rwth-aachen.de";
-        final List<String> ips = new ArrayList<>();
+        var host = "treibhaus.informatik.rwth-aachen.de";
+        var ips = new ArrayList<String>();
 
         try {
             ips.add(InetAddress.getLocalHost().getHostAddress());
@@ -250,8 +254,7 @@ public class JettyServer {
             // fail silently
         }
 
-        try {
-            Socket socket = new Socket();
+        try (var socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, 80));
             ips.add(socket.getLocalAddress().getHostAddress());
         } catch (Exception e) {
@@ -259,7 +262,7 @@ public class JettyServer {
         }
 
         // https://stackoverflow.com/a/38342964
-        try (DatagramSocket socket = new DatagramSocket()) {
+        try (var socket = new DatagramSocket()) {
             socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
             ips.add(socket.getLocalAddress().getHostAddress());
         } catch (Exception e) {
@@ -268,11 +271,10 @@ public class JettyServer {
 
         // https://stackoverflow.com/a/20418809
         try {
-            for (Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
-                    ifaces.hasMoreElements(); ) {
-                NetworkInterface iface = ifaces.nextElement();
-                for (Enumeration<InetAddress> inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements(); ) {
-                    InetAddress inetAddr = inetAddrs.nextElement();
+            for (var ifaces = NetworkInterface.getNetworkInterfaces(); ifaces.hasMoreElements(); ) {
+                var iface = ifaces.nextElement();
+                for (var inetAddrs = iface.getInetAddresses(); inetAddrs.hasMoreElements(); ) {
+                    var inetAddr = inetAddrs.nextElement();
                     if (!inetAddr.isLoopbackAddress() && (inetAddr instanceof Inet4Address)) {
                         ips.add(inetAddr.getHostAddress());
                     }

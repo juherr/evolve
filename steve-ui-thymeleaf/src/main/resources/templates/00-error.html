@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Error')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <div class="error">
+        <h3>Error:</h3>
+        <p th:text="${exception}"></p>
+        <!--
+        <th:block th:if="${exception != null and exception.getCause() != null}">
+            <h3>Reason:</h3>
+            <p th:text="${exception.getCause()}"></p>
+        </th:block>
+        -->
+        <br/>
+        <p>You can <a href="javascript:window.history.back()">go back</a> or, for more detail, <a th:href="@{/manager/log}">view the log</a></p>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

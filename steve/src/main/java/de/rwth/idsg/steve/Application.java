@@ -22,6 +22,7 @@ import de.rwth.idsg.steve.utils.LogFileRetriever;
 import de.rwth.idsg.steve.utils.SteveConfigurationReader;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -35,59 +36,63 @@ import java.util.TimeZone;
 @Slf4j
 public class Application {
 
+    private final LogFileRetriever logFileRetriever;
+    private final PrintStream out;
+    private final PrintStream err;
     private final JettyServer server;
 
     public Application(SteveConfiguration config, LogFileRetriever logFileRetriever) {
-        server = new JettyServer(config, logFileRetriever);
+        this.logFileRetriever = logFileRetriever;
+        this.out = System.out;
+        this.err = System.err;
+        this.server = new JettyServer(config, logFileRetriever);
     }
 
     public static void main(String[] args) throws Exception {
         // For Hibernate validator
         System.setProperty("org.jboss.logging.provider", "slf4j");
 
-        SteveConfiguration sc = SteveConfigurationReader.readSteveConfiguration("main.properties");
-        log.info("Loaded the properties. Starting with the '{}' profile", sc.getProfile());
+        SteveConfiguration config = SteveConfigurationReader.readSteveConfiguration("main.properties");
+        log.info("Loaded the properties. Starting with the '{}' profile", config.getProfile());
 
-        var zoneId = ZoneId.of(sc.getTimeZoneId());
+        var zoneId = ZoneId.of(config.getTimeZoneId());
         TimeZone.setDefault(TimeZone.getTimeZone(zoneId));
         log.info(
                 "Date/time zone of the application is set to {}. Current date/time: {}",
-                sc.getTimeZoneId(),
+                config.getTimeZoneId(),
                 ZonedDateTime.now(zoneId));
 
         LogFileRetriever logFileRetriever = new LogFileRetriever();
+        Application app = new Application(config, logFileRetriever);
+        app.serverStart();
+    }
+
+    public void start() throws Exception {
         Optional<Path> path = logFileRetriever.getPath();
         boolean loggingToFile = path.isPresent();
         if (loggingToFile) {
-            System.out.println("Log file: " + path.get().toAbsolutePath());
+            out.println("Log file: " + path.get().toAbsolutePath());
         }
-
-        Application app = new Application(sc, logFileRetriever);
-
         try {
-            app.start();
-            app.join();
+            serverStart();
+            server.join();
         } catch (Exception e) {
             log.error("Application failed to start", e);
 
             if (loggingToFile) {
-                System.err.println("Application failed to start");
-                e.printStackTrace();
+                err.println("Application failed to start");
+                e.printStackTrace(err);
             }
 
-            app.stop();
+            serverStop();
         }
     }
 
-    public void start() throws Exception {
+    public void serverStart() throws Exception {
         server.start();
     }
 
-    public void join() throws Exception {
-        server.join();
-    }
-
-    public void stop() throws Exception {
+    public void serverStop() throws Exception {
         server.stop();
     }
 }

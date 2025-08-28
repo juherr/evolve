@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class ConcurrentWebSocketHandler implements WebSocketHandler {
 
     private static final int SEND_TIME_LIMIT = (int) TimeUnit.SECONDS.toMillis(10);
-    private static final int BUFFER_SIZE_LIMIT = 5 * OcppWebSocketConfiguration.MAX_MSG_SIZE;
+    private static final int BUFFER_SIZE_LIMIT = 5 * OcppWebSocketConfiguration.WS_MAX_MSG_SIZE;
 
     private final Map<String, ConcurrentWebSocketSessionDecorator> sessions = new ConcurrentHashMap<>();
 

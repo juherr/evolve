@@ -48,6 +48,14 @@ public class SteveConfiguration {
         private final String routerEndpointPath;
 
         private final @Nullable String contextPath;
+
+        public String getLocation() {
+            return contextPath + managerMapping + "/home";
+        }
+
+        public String getWsPathInfix() {
+            return routerEndpointPath + websocketMapping;
+        }
     }
 
     private final Paths paths;

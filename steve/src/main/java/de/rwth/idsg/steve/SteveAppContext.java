@@ -20,91 +20,70 @@ package de.rwth.idsg.steve;
 
 import de.rwth.idsg.steve.utils.LogFileRetriever;
 import de.rwth.idsg.steve.web.dto.EndpointInfo;
+import lombok.Getter;
 import org.apache.cxf.transport.servlet.CXFServlet;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.SimpleInstanceManager;
-import org.eclipse.jetty.ee10.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
-import org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServerContainer;
 import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.eclipse.jetty.websocket.core.WebSocketConstants;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.boot.web.servlet.context.AnnotationConfigServletWebApplicationContext;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import jakarta.servlet.DispatcherType;
 
-import static de.rwth.idsg.steve.config.OcppWebSocketConfiguration.IDLE_TIMEOUT;
-import static de.rwth.idsg.steve.config.OcppWebSocketConfiguration.MAX_MSG_SIZE;
-
 /**
  * @author Sevket Goekay <sevketgokay@gmail.com>
  * @since 07.04.2015
  */
+@Getter
 public class SteveAppContext {
 
-    private final SteveConfiguration config;
-    private final AnnotationConfigWebApplicationContext springContext;
+    private final String location;
+    private final String contextPath;
+    private final boolean isGzipEnabled;
     private final WebAppContext webAppContext;
 
     public SteveAppContext(SteveConfiguration config, LogFileRetriever logFileRetriever, EndpointInfo info) {
-        this.config = config;
-        springContext = new AnnotationConfigWebApplicationContext();
-        var context = new GenericApplicationContext();
-        context.registerBean(SteveConfiguration.class, () -> config);
-        context.registerBean(LogFileRetriever.class, () -> logFileRetriever);
-        context.registerBean(EndpointInfo.class, () -> info);
-        context.refresh();
-        context.setParent(springContext.getParent());
-        springContext.setParent(context);
+        this.location = config.getPaths().getLocation();
+        this.contextPath = config.getPaths().getContextPath();
+        this.isGzipEnabled = config.getJetty().isGzipEnabled();
+
+        this.webAppContext = createWebApp(config, logFileRetriever, info);
+    }
+
+    private static WebApplicationContext createSpringContext(
+            ApplicationContext parent,
+            SteveConfiguration config,
+            LogFileRetriever logFileRetriever,
+            EndpointInfo info) {
+        var springContext = new AnnotationConfigServletWebApplicationContext();
+        springContext.setParent(parent);
         springContext.scan("de.rwth.idsg.steve.config");
-        webAppContext = initWebApp();
+        springContext.registerBean(SteveConfiguration.class, () -> config);
+        springContext.registerBean(LogFileRetriever.class, () -> logFileRetriever);
+        springContext.registerBean(EndpointInfo.class, () -> info);
+
+        return springContext;
     }
 
-    public ContextHandlerCollection getHandlers() {
-        return new ContextHandlerCollection(new ContextHandler(getRedirectHandler()), new ContextHandler(getWebApp()));
-    }
-
-    /**
-     * Otherwise, defaults come from {@link WebSocketConstants}
-     */
-    public void configureWebSocket() {
-        var container = JettyWebSocketServerContainer.getContainer(webAppContext.getServletContext());
-        container.setMaxTextMessageSize(MAX_MSG_SIZE);
-        container.setIdleTimeout(IDLE_TIMEOUT);
-    }
-
-    private Handler getWebApp() {
-        if (!config.getJetty().isGzipEnabled()) {
-            return webAppContext;
-        }
-
-        // Wraps the whole web app in a gzip handler to make Jetty return compressed content
-        // http://www.eclipse.org/jetty/documentation/current/gzip-filter.html
-        return new GzipHandler(webAppContext);
-    }
-
-    private WebAppContext initWebApp() {
+    private static WebAppContext createWebApp(
+            SteveConfiguration config, LogFileRetriever logFileRetriever, EndpointInfo info) {
         var ctx = new WebAppContext();
         ctx.setContextPath(config.getPaths().getContextPath());
-        ctx.setBaseResourceAsString(getWebAppURIAsString());
 
         // if during startup an exception happens, do not swallow it, throw it
         ctx.setThrowUnavailableOnStartupException(true);
@@ -112,6 +91,13 @@ public class SteveAppContext {
         // Disable directory listings if no index.html is found.
         ctx.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
+        var rootContext = new AnnotationConfigApplicationContext();
+        rootContext.scan("de.rwth.idsg.steve.ui.config");
+        rootContext.refresh();
+        var jettyCustomizer = rootContext.getBean(JettyCustomizer.class);
+        jettyCustomizer.configure(ctx);
+
+        var springContext = createSpringContext(rootContext, config, logFileRetriever, info);
         ctx.addEventListener(new ContextLoaderListener(springContext));
 
         var web = new ServletHolder("spring-dispatcher", new DispatcherServlet(springContext));
@@ -128,26 +114,34 @@ public class SteveAppContext {
                 config.getPaths().getRootMapping() + "*",
                 EnumSet.allOf(DispatcherType.class));
 
-        initJSP(ctx);
         return ctx;
     }
 
-    private Handler getRedirectHandler() {
+    public ContextHandlerCollection createHandlers() {
+        var redirectContextHandler = createRedirectContextHandler(contextPath, location);
+        var webAppContextHandler = createWebAppContextHandler(webAppContext, isGzipEnabled);
+        return new ContextHandlerCollection(redirectContextHandler, webAppContextHandler);
+    }
+
+    private static ContextHandler createWebAppContextHandler(Handler handler, boolean isGzipEnabled) {
+        // Wraps the whole web app in a gzip handler to make Jetty return compressed content
+        // http://www.eclipse.org/jetty/documentation/current/gzip-filter.html
+        return new ContextHandler(isGzipEnabled ? new GzipHandler(handler) : handler);
+    }
+
+    private static ContextHandler createRedirectContextHandler(String contextPath, String location) {
         var rewrite = new RewriteHandler();
-        for (var redirect : getRedirectSet()) {
+        for (var redirect : getRedirectSet(contextPath)) {
             var rule = new RedirectPatternRule();
             rule.setTerminating(true);
             rule.setPattern(redirect);
-            rule.setLocation(
-                    config.getPaths().getContextPath() + config.getPaths().getManagerMapping() + "/home");
+            rule.setLocation(location);
             rewrite.addRule(rule);
         }
-        return rewrite;
+        return new ContextHandler(rewrite);
     }
 
-    private Set<String> getRedirectSet() {
-        var path = config.getPaths().getContextPath();
-
+    private static Set<String> getRedirectSet(String path) {
         var redirectSet = HashSet.<String>newHashSet(3);
         redirectSet.add("");
         redirectSet.add(path);
@@ -159,66 +153,5 @@ public class SteveAppContext {
         }
 
         return redirectSet;
-    }
-
-    /**
-     * Help by:
-     * https://github.com/jetty/jetty-examples/tree/12.0.x/embedded/ee10-jsp
-     * https://github.com/jetty-project/embedded-jetty-jsp
-     * https://github.com/jasonish/jetty-springmvc-jsp-template
-     * http://examples.javacodegeeks.com/enterprise-java/jetty/jetty-jsp-example
-     */
-    private void initJSP(WebAppContext ctx) {
-        ctx.addBean(new EmbeddedJspStarter(ctx));
-        ctx.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
-    }
-
-    private static String getWebAppURIAsString() {
-        try {
-            return new ClassPathResource("webapp").getURI().toString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * From: https://github.com/jetty/jetty-examples/blob/12.0.x/embedded/ee10-jsp/src/main/java/examples/EmbeddedJspStarter.java
-     *
-     * JspStarter for embedded ServletContextHandlers
-     *
-     * This is added as a bean that is a jetty LifeCycle on the ServletContextHandler.
-     * This bean's doStart method will be called as the ServletContextHandler starts,
-     * and will call the ServletContainerInitializer for the jsp engine.
-     */
-    public static class EmbeddedJspStarter extends AbstractLifeCycle {
-
-        private final JettyJasperInitializer sci;
-        private final ServletContextHandler context;
-
-        public EmbeddedJspStarter(ServletContextHandler context) {
-            this.sci = new JettyJasperInitializer();
-            this.context = context;
-
-            // we dont need all this from the example, since our JSPs are precompiled
-            //
-            // StandardJarScanner jarScanner = new StandardJarScanner();
-            // StandardJarScanFilter jarScanFilter = new StandardJarScanFilter();
-            // jarScanFilter.setTldScan("taglibs-standard-impl-*");
-            // jarScanFilter.setTldSkip("apache-*,ecj-*,jetty-*,asm-*,javax.servlet-*,javax.annotation-*,taglibs-standard-spec-*");
-            // jarScanner.setJarScanFilter(jarScanFilter);
-            // this.context.setAttribute("org.apache.tomcat.JarScanner", jarScanner);
-        }
-
-        @Override
-        protected void doStart() throws Exception {
-            var old = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(context.getClassLoader());
-            try {
-                sci.onStartup(null, context.getServletContext());
-                super.doStart();
-            } finally {
-                Thread.currentThread().setContextClassLoader(old);
-            }
-        }
     }
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: header('Transaction Details')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: page-header}"></div>
+
+<div class="content">
+    <section><span>Transaction Details</span></section>
+    <br>
+
+    <table id="details" class="cpd">
+        <thead><tr><th>Transaction Overview</th><th></th></tr></thead>
+        <tr><td>Transaction ID</td><td th:text="${details.transaction.id}"></td></tr>
+        <tr><td>ChargeBox ID</td><td><a th:href="@{/manager/chargepoints/details/{pk}(pk=${details.transaction.chargeBoxPk})}" th:text="${details.transaction.chargeBoxId}"></a></td></tr>
+        <tr><td>Connector ID</td><td th:text="${details.transaction.connectorId}"></td></tr>
+        <tr><td>OCPP ID Tag</td><td><a th:href="@{/manager/ocppTags/details/{pk}(pk=${details.transaction.ocppTagPk})}" th:text="${details.transaction.ocppIdTag}"></a></td></tr>
+        <tr><td>Start Date/Time</td><td th:text="${details.transaction.startTimestamp}"></td></tr>
+        <tr><td>Start Value</td><td th:text="${details.transaction.startValue}"></td></tr>
+        <tr><td>Stop Date/Time</td><td th:text="${details.transaction.stopTimestamp}"></td></tr>
+        <tr><td>Stop Value</td><td th:text="${details.transaction.stopValue}"></td></tr>
+        <tr><td>Stop Reason</td><td th:text="${details.transaction.stopReason}"></td></tr>
+        <tr><td>Stop Event Actor</td><td th:text="${details.transaction.stopEventActor}"></td></tr>
+    </table>
+    <br>
+    <section><span>Intermediate Meter Values</span></section>
+    <table class="res">
+        <thead>
+        <tr>
+            <th data-sort="date">Value Timestamp</th>
+            <th data-sort="int">Value</th>
+            <th>Reading Context</th>
+            <th>Format</th>
+            <th>Measurand</th>
+            <th>Location</th>
+            <th>Unit</th>
+            <th>Phase</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="v : ${details.values}">
+            <td th:data-sort-value="${v.valueTimestamp.toEpochMilli()}" th:text="${v.valueTimestamp}"></td>
+            <td th:text="${v.value}"></td>
+            <td th:text="${v.readingContext}"></td>
+            <td th:text="${v.format}"></td>
+            <td th:text="${v.measurand}"></td>
+            <td th:text="${v.location}"></td>
+            <td th:text="${v.unit}"></td>
+            <td th:text="${v.phase}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <br>
+</div>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

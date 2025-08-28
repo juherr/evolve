@@ -36,6 +36,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static de.rwth.idsg.steve.utils.CustomDSL.date;
 import static de.rwth.idsg.steve.utils.CustomDSL.timestampDiff;
@@ -68,9 +69,10 @@ public class GenericRepositoryImpl implements GenericRepository {
 
     @Override
     public void checkJavaAndMySQLOffsets() {
-        long java = DateTimeUtils.getOffsetFromUtcInSeconds();
+        var offset = ZonedDateTime.now().getOffset();
+        var java = offset.getTotalSeconds();
 
-        long sql = ctx.select(timestampDiff(DatePart.SECOND, utcTimestamp(), DSL.currentTimestamp()))
+        var sql = ctx.select(timestampDiff(DatePart.SECOND, utcTimestamp(), DSL.currentTimestamp()))
                 .fetchOne()
                 .getValue(0, Long.class);
 

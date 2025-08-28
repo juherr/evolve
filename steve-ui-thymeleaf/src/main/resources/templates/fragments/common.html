@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="bind-errors(formName)">
+        <div th:if="${#fields.hasErrors(formName + '.*')}" class="error">
+            <ul>
+                <li th:each="err : ${#fields.errors(formName + '.*')}" th:text="${err}"></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

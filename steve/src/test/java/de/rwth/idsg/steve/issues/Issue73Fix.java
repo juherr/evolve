@@ -62,11 +62,11 @@ public class Issue73Fix {
 
         var app = new Application(config, new LogFileRetriever());
         try {
-            app.start();
+            app.serverStart();
             test();
         } finally {
             try {
-                app.stop();
+                app.serverStop();
             } finally {
                 __DatabasePreparer__.cleanUp();
             }

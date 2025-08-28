@@ -130,8 +130,8 @@ public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandl
         // the connection because of a idle timeout, we ping-pong at fixed intervals.
         var pingSchedule = asyncTaskScheduler.scheduleAtFixedRate(
                 new PingTask(chargeBoxId, session),
-                Instant.now().plus(OcppWebSocketConfiguration.PING_INTERVAL),
-                OcppWebSocketConfiguration.PING_INTERVAL);
+                Instant.now().plus(OcppWebSocketConfiguration.WS_PING_INTERVAL),
+                OcppWebSocketConfiguration.WS_PING_INTERVAL);
 
         futureResponseContextStore.addSession(session);
 

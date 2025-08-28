@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -148,10 +147,5 @@ public final class DateTimeUtils {
         }
 
         return sb.toString().trim();
-    }
-
-    public static long getOffsetFromUtcInSeconds() {
-        var offset = ZonedDateTime.now().getOffset();
-        return offset.getTotalSeconds();
     }
 }

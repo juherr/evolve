@@ -69,8 +69,9 @@ public class SecurityConfiguration {
 
         return http.authorizeHttpRequests(req -> req.requestMatchers(
                                 "/static/**",
+                                "/webjars/**",
                                 config.getPaths().getSoapMapping() + "/**",
-                                OcppWebSocketConfiguration.PATH_INFIX + "**",
+                                config.getPaths().getWsPathInfix() + "/**",
                                 "/WEB-INF/views/**" // https://github.com/spring-projects/spring-security/issues/13285#issuecomment-1579097065
                                 )
                         .permitAll()

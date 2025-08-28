@@ -23,7 +23,9 @@
     <module>steve-ocpp-2-x</module>
     <module>steve-ocpp-soap</module>
     <module>steve-ocpp-websocket</module>
+    <module>steve-ui</module>
     <module>steve-ui-jsp</module>
+    <module>steve-ui-thymeleaf</module>
   </modules>
 
   <properties>
@@ -87,7 +89,17 @@
       </dependency>
       <dependency>
         <groupId>de.rwth.idsg</groupId>
+        <artifactId>steve-ui</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.rwth.idsg</groupId>
         <artifactId>steve-ui-jsp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.rwth.idsg</groupId>
+        <artifactId>steve-ui-thymeleaf</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -101,6 +113,13 @@
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-bom</artifactId>
         <version>6.5.3</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-bom</artifactId>
+        <version>${jetty.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
