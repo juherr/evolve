@@ -26,29 +26,33 @@ The other modules act as "adapters" that implement the ports defined in `steve-c
 
 ### Key Frameworks
 
--   **Spring Framework:** Used for dependency injection, managing application components, and transaction management.
--   **Jetty:** An embedded web server that runs the application as a standalone JAR file.
--   **jOOQ:** A framework for building type-safe SQL queries in Java.
--   **Lombok:** A library to reduce boilerplate code for model/data objects.
+-   **Spring Framework:** Provides dependency injection, component management, and transaction control.
+-   **Jetty:** Serves as the embedded web server, allowing the application to run as a standalone JAR.
+-   **jOOQ:** Builds type-safe SQL queries for database interaction.
+-   **Flyway:** Manages database schema migrations, executed during the build and at startup.
+-   **Lombok:** Reduces boilerplate code for model and data objects.
 
 ## Getting Started
 
 The easiest way to get the project up and running is by using Docker Compose. This will set up the application and the required database.
 
-To start the project, run:
+To start the project from the repository root, run:
 ```bash
-docker compose up -d
+docker compose -f steve/docker-compose.yml up -d
 ```
 The web interface will be available at `http://localhost:8180`.
 
 ## Building the Project
 
 To build the project from source, you will need:
-- JDK 21 or newer
-- Maven 3.9.0 or newer
-- A running MySQL or MariaDB database
+-   JDK 21 or newer
+-   Maven 3.9.0 or newer
+-   A running database instance (MySQL 8.0 or MariaDB 10.3+).
 
-**IMPORTANT:** The build process requires a running database. The build connects to the database to run migrations (using Flyway) and then generates Java code from the schema (using jOOQ).
+**IMPORTANT:** The build process requires a running database. It connects to the database to perform two key steps during the `generate-sources` phase, defined in the `steve-jooq/pom.xml`:
+
+1.  **Database Migration (`flyway-maven-plugin`):** The `migrate` goal is run to apply SQL schema changes from `src/main/resources/db/migration`.
+2.  **Code Generation (`jooq-codegen-maven`):** The `generate` goal is run to create Java source code from the database schema. This step requires the database user to have `SELECT` privileges on the `information_schema` tables.
 
 Before building, you need to configure the database connection. The default configuration is in `steve/src/main/resources/config/main.properties`. You can either edit this file or provide the configuration as command-line arguments.
 
