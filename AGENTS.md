@@ -56,6 +56,15 @@ To build the project from source, you will need:
 
 Before building, you need to configure the database connection. The default configuration is in `steve/src/main/resources/config/main.properties`. You can either edit this file or provide the configuration as command-line arguments.
 
+Database Prerequisites (MySQL/MariaDB):
+```sql
+CREATE DATABASE <schema> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER '<username>'@'%' IDENTIFIED BY '<password>';
+GRANT ALL ON <schema>.* TO '<username>'@'%';
+GRANT SELECT ON information_schema.* TO '<username>'@'%';
+FLUSH PRIVILEGES;
+```
+
 To build the project, run:
 ```bash
 ./mvnw package
