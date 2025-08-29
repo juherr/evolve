@@ -54,9 +54,11 @@ To build the project from source, you will need:
 1.  **Database Migration (`flyway-maven-plugin`):** The `migrate` goal is run to apply SQL schema changes from `src/main/resources/db/migration`.
 2.  **Code Generation (`jooq-codegen-maven`):** The `generate` goal is run to create Java source code from the database schema. This step requires the database user to have `SELECT` privileges on the `information_schema` tables.
 
-Before building, you need to configure the database connection. The default configuration is in `steve/src/main/resources/config/main.properties`. You can either edit this file or provide the configuration as command-line arguments.
+### Configuration
 
-Database Prerequisites (MySQL/MariaDB):
+Before building, you need to configure the database connection.
+
+**1. Database Prerequisites (MySQL/MariaDB):**
 ```sql
 CREATE DATABASE <schema> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER '<username>'@'%' IDENTIFIED BY '<password>';
@@ -65,17 +67,42 @@ GRANT SELECT ON information_schema.* TO '<username>'@'%';
 FLUSH PRIVILEGES;
 ```
 
+**2. Application Properties:**
+The default configuration is in `steve/src/main/resources/config/main.properties`. You can either edit this file or provide the configuration as command-line arguments during the build.
+
+### Maven Profiles and Properties
+
+The project uses two Maven profiles defined in `steve/pom.xml`:
+-   `prod`: Active by default. Configured for production usage (e.g., file-based logging).
+-   `dev`: Can be activated with `-Pdev`. Configured for development (e.g., console logging).
+
+You can override database properties using the `-D` flag. The primary properties are:
+-   `db.ip`
+-   `db.port`
+-   `db.schema`
+-   `db.user`
+-   `db.password`
+
+### Running the Build
+
 To build the project, run:
 ```bash
 ./mvnw package
 ```
 
-If you need to override the database configuration, you can do so like this:
+Example with overridden properties:
 ```bash
 ./mvnw package -Ddb.ip=<ip> -Ddb.port=<port> -Ddb.schema=<schema> -Ddb.user=<username> -Ddb.password=<password>
 ```
 
-A runnable JAR file will be created in `steve/target/`.
+A runnable JAR file will be created at `steve/target/steve.jar`.
+
+## Running the Application
+
+After building, you can run the application with the following command:
+```bash
+java -jar steve/target/steve.jar
+```
 
 ## Running Tests
 
