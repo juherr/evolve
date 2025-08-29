@@ -63,9 +63,9 @@ Before building, you need to configure the database connection.
 CREATE DATABASE <schema> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER '<username>'@'%' IDENTIFIED BY '<password>';
 GRANT ALL ON <schema>.* TO '<username>'@'%';
-GRANT SELECT ON information_schema.* TO '<username>'@'%';
 FLUSH PRIVILEGES;
 ```
+Note: On MySQL 8.0+, you cannot grant privileges on `INFORMATION_SCHEMA`; metadata read access is implicit. The grants above are sufficient for Flyway and jOOQ code generation.
 
 **2. Application Properties:**
 The default configuration is in `steve/src/main/resources/config/main.properties`. You can either edit this file or provide the configuration as command-line arguments during the build.
