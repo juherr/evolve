@@ -18,7 +18,6 @@
  */
 package de.rwth.idsg.steve.config;
 
-import de.rwth.idsg.steve.SteveConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -29,38 +28,26 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-/**
- * @author Sevket Goekay <sevketgokay@gmail.com>
- * @since 07.01.2015
- */
 @Slf4j
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    /**
-     * Password encoding changed with spring-security 5.0.0. We either have to use a prefix before the password to
-     * indicate which actual encoder {@link DelegatingPasswordEncoder} should use [1, 2] or specify the encoder as we do.
-     *
-     * [1] https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-storage-format
-     * [2] {@link PasswordEncoderFactories#createDelegatingPasswordEncoder()}
-     */
     @Bean
-    public PasswordEncoder passwordEncoder(SteveConfiguration config) {
-        return config.getAuth().getPasswordEncoder();
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, SteveConfiguration config) throws Exception {
-        final String prefix = config.getPaths().getManagerMapping();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        final String prefix = "/manager";
 
         RequestMatcher toOverview = request -> {
             String param = request.getParameter("backToOverview");
@@ -69,7 +56,7 @@ public class SecurityConfiguration {
 
         return http.authorizeHttpRequests(req -> req.requestMatchers(
                                 "/static/**",
-                                config.getPaths().getSoapMapping() + "/**",
+                                "/soap/**",
                                 OcppWebSocketConfiguration.PATH_INFIX + "**",
                                 "/WEB-INF/views/**" // https://github.com/spring-projects/spring-security/issues/13285#issuecomment-1579097065
                                 )
@@ -124,7 +111,7 @@ public class SecurityConfiguration {
                 // for
                 // all access, there is a global default behaviour from spring security: enable CSRF for all POSTs.
                 // we need to disable CSRF for SOAP paths explicitly.
-                .csrf(c -> c.ignoringRequestMatchers(config.getPaths().getSoapMapping() + "/**"))
+                .csrf(c -> c.ignoringRequestMatchers("/soap/**"))
                 .sessionManagement(req -> req.invalidSessionUrl(prefix + "/signin"))
                 .formLogin(req -> req.loginPage(prefix + "/signin").permitAll())
                 .logout(req -> req.logoutUrl(prefix + "/signout"))
@@ -134,10 +121,9 @@ public class SecurityConfiguration {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain apiKeyFilterChain(
-            HttpSecurity http, SteveConfiguration config, ApiAuthenticationManager apiAuthenticationManager)
+    public SecurityFilterChain apiKeyFilterChain(HttpSecurity http, ApiAuthenticationManager apiAuthenticationManager)
             throws Exception {
-        return http.securityMatcher(config.getPaths().getApiMapping() + "/**")
+        return http.securityMatcher("/api/**")
                 .csrf(k -> k.disable())
                 .sessionManagement(k -> k.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilter(new BasicAuthenticationFilter(apiAuthenticationManager, apiAuthenticationManager))

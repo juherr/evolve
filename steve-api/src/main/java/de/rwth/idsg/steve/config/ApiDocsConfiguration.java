@@ -18,7 +18,6 @@
  */
 package de.rwth.idsg.steve.config;
 
-import de.rwth.idsg.steve.SteveConfiguration;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -74,7 +73,7 @@ public class ApiDocsConfiguration {
     }
 
     @Bean
-    public OpenAPI apiDocs(SteveConfiguration config) {
+    public OpenAPI apiDocs(SteveProperties steveProperties) {
         var title = "SteVe REST API Documentation";
 
         var securityName = "basicAuth";
@@ -91,7 +90,7 @@ public class ApiDocsConfiguration {
                         .license(new License()
                                 .name("GPL-3.0")
                                 .url("https://github.com/steve-community/steve/blob/master/LICENSE.txt"))
-                        .version(config.getSteveVersion()))
+                        .version(steveProperties.getVersion()))
                 // https://stackoverflow.com/a/68185254
                 .servers(List.of(new Server().url("/").description("Default Server URL")))
                 // define a security schema

@@ -18,7 +18,6 @@
  */
 package de.rwth.idsg.steve.web.dto;
 
-import de.rwth.idsg.steve.SteveConfiguration;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -37,15 +36,10 @@ public class EndpointInfo {
     private final ItemsWithInfo ocppSoap;
     private final ItemsWithInfo ocppWebSocket;
 
-    public EndpointInfo(SteveConfiguration config) {
-        this.webInterface = new ItemsWithInfo(
-                "Access the web interface using", config.getPaths().getManagerMapping() + "/home");
-        this.ocppSoap = new ItemsWithInfo(
-                "SOAP endpoint for OCPP",
-                config.getPaths().getSoapMapping() + config.getPaths().getRouterEndpointPath());
-        this.ocppWebSocket = new ItemsWithInfo(
-                "WebSocket/JSON endpoint for OCPP",
-                config.getPaths().getWebsocketMapping() + config.getPaths().getRouterEndpointPath() + "/(chargeBoxId)");
+    public EndpointInfo() {
+        this.webInterface = new ItemsWithInfo("Access the web interface using", "/manager/home");
+        this.ocppSoap = new ItemsWithInfo("SOAP endpoint for OCPP", "/soap/services/ocpp");
+        this.ocppWebSocket = new ItemsWithInfo("WebSocket/JSON endpoint for OCPP", "/ws/ocpp/(chargeBoxId)");
     }
 
     @Getter
