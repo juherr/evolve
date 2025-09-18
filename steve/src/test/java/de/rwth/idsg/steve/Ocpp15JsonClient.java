@@ -1,8 +1,27 @@
+/*
+ * SteVe - SteckdosenVerwaltung - https://github.com/steve-community/steve
+ * Copyright (C) 2013-2025 SteVe Community Team
+ * All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package de.rwth.idsg.steve;
 
 import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.ocpp.ws.JsonObjectMapper;
 import de.rwth.idsg.steve.utils.OcppJsonChargePoint;
+import ocpp.cs._2012._06.AuthorizationStatus;
 import ocpp.cs._2012._06.BootNotificationRequest;
 import ocpp.cs._2012._06.ChargePointErrorCode;
 import ocpp.cs._2012._06.ChargePointStatus;
@@ -12,13 +31,9 @@ import ocpp.cs._2012._06.MeterValuesRequest;
 import ocpp.cs._2012._06.StartTransactionRequest;
 import ocpp.cs._2012._06.StatusNotificationRequest;
 import ocpp.cs._2012._06.StopTransactionRequest;
-import ocpp.cs._2012._06.SampledValue;
-import ocpp.cs._2012._06.AuthorizationStatus;
-
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.byLessThan;
@@ -28,16 +43,19 @@ public class Ocpp15JsonClient implements OcppTestClient {
     private final OcppJsonChargePoint client;
 
     public Ocpp15JsonClient(String chargeBoxId, String path) {
-        this.client = new OcppJsonChargePoint(new JsonObjectMapper(), OcppVersion.V_15, chargeBoxId, path);
+        this.client =
+                new OcppJsonChargePoint(JsonObjectMapper.createObjectMapper(), OcppVersion.V_15, chargeBoxId, path);
         this.client.start();
     }
 
     @Override
     public void bootNotification(String vendor, String model) {
+        var req = new BootNotificationRequest();
+        req.setChargePointVendor(vendor);
+        req.setChargePointModel(model);
+
         client.prepare(
-                new BootNotificationRequest()
-                        .withChargePointVendor(vendor)
-                        .withChargePointModel(model),
+                req,
                 ocpp.cs._2012._06.BootNotificationResponse.class,
                 response -> assertThat(response.getStatus()).isEqualTo(ocpp.cs._2012._06.RegistrationStatus.ACCEPTED),
                 error -> {
@@ -48,12 +66,14 @@ public class Ocpp15JsonClient implements OcppTestClient {
 
     @Override
     public void startTransaction(int connectorId, String idTag, int meterStart, OffsetDateTime timestamp) {
+        var req = new StartTransactionRequest();
+        req.setConnectorId(connectorId);
+        req.setIdTag(idTag);
+        req.setTimestamp(timestamp);
+        req.setMeterStart(meterStart);
+
         client.prepare(
-                new StartTransactionRequest()
-                        .withConnectorId(connectorId)
-                        .withIdTag(idTag)
-                        .withTimestamp(timestamp)
-                        .withMeterStart(meterStart),
+                req,
                 ocpp.cs._2012._06.StartTransactionResponse.class,
                 response -> {
                     assertThat(response).isNotNull();
@@ -68,11 +88,13 @@ public class Ocpp15JsonClient implements OcppTestClient {
 
     @Override
     public void stopTransaction(int transactionId, int meterStop, OffsetDateTime timestamp) {
+        var req = new StopTransactionRequest();
+        req.setTransactionId(transactionId);
+        req.setTimestamp(timestamp);
+        req.setMeterStop(meterStop);
+
         client.prepare(
-                new StopTransactionRequest()
-                        .withTransactionId(transactionId)
-                        .withTimestamp(timestamp)
-                        .withMeterStop(meterStop),
+                req,
                 ocpp.cs._2012._06.StopTransactionResponse.class,
                 response -> assertThat(response).isNotNull(),
                 error -> {
@@ -83,13 +105,18 @@ public class Ocpp15JsonClient implements OcppTestClient {
 
     @Override
     public void meterValues(int connectorId, int transactionId, OffsetDateTime timestamp, String value) {
-        var meterValue = new MeterValue()
-                .withTimestamp(timestamp)
-                .withSampledValue(Collections.singletonList(new SampledValue().withValue(value)));
-        var meterValuesRequest = new MeterValuesRequest()
-                .withConnectorId(connectorId)
-                .withTransactionId(transactionId)
-                .withMeterValue(Collections.singletonList(meterValue));
+        var sampledValue = new MeterValue.Value();
+        sampledValue.setValue(value);
+
+        var meterValue = new MeterValue();
+        meterValue.setTimestamp(timestamp);
+        meterValue.getValue().add(sampledValue);
+
+        var meterValuesRequest = new MeterValuesRequest();
+        meterValuesRequest.setConnectorId(connectorId);
+        meterValuesRequest.setTransactionId(transactionId);
+        meterValuesRequest.getValues().add(meterValue);
+
         client.prepare(
                 meterValuesRequest,
                 ocpp.cs._2012._06.MeterValuesResponse.class,
@@ -107,7 +134,8 @@ public class Ocpp15JsonClient implements OcppTestClient {
                 ocpp.cs._2012._06.HeartbeatResponse.class,
                 response -> {
                     assertThat(response).isNotNull();
-                    assertThat(response.getCurrentTime()).isCloseTo(OffsetDateTime.now(), byLessThan(1, ChronoUnit.SECONDS));
+                    assertThat(response.getCurrentTime())
+                            .isCloseTo(OffsetDateTime.now(), byLessThan(1, ChronoUnit.SECONDS));
                 },
                 error -> {
                     throw new RuntimeException(error.toString());
@@ -117,11 +145,12 @@ public class Ocpp15JsonClient implements OcppTestClient {
 
     @Override
     public void statusNotification(int connectorId, String status, String errorCode, OffsetDateTime timestamp) {
-        var statusNotificationRequest = new StatusNotificationRequest()
-                .withConnectorId(connectorId)
-                .withStatus(ChargePointStatus.fromValue(status))
-                .withErrorCode(ChargePointErrorCode.fromValue(errorCode))
-                .withTimestamp(timestamp);
+        var statusNotificationRequest = new StatusNotificationRequest();
+        statusNotificationRequest.setConnectorId(connectorId);
+        statusNotificationRequest.setStatus(ChargePointStatus.fromValue(status));
+        statusNotificationRequest.setErrorCode(ChargePointErrorCode.fromValue(errorCode));
+        statusNotificationRequest.setTimestamp(timestamp);
+
         client.prepare(
                 statusNotificationRequest,
                 ocpp.cs._2012._06.StatusNotificationResponse.class,

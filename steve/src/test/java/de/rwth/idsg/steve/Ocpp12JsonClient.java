@@ -1,3 +1,21 @@
+/*
+ * SteVe - SteckdosenVerwaltung - https://github.com/steve-community/steve
+ * Copyright (C) 2013-2025 SteVe Community Team
+ * All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package de.rwth.idsg.steve;
 
 import de.rwth.idsg.steve.ocpp.OcppVersion;
@@ -11,11 +29,9 @@ import ocpp.cs._2010._08.MeterValue;
 import ocpp.cs._2010._08.MeterValuesRequest;
 import ocpp.cs._2010._08.StatusNotificationRequest;
 import ocpp.cs._2010._08.StopTransactionRequest;
-import ocpp.cs._2010._08.SampledValue;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.byLessThan;
@@ -25,16 +41,19 @@ public class Ocpp12JsonClient implements OcppTestClient {
     private final OcppJsonChargePoint client;
 
     public Ocpp12JsonClient(String chargeBoxId, String path) {
-        this.client = new OcppJsonChargePoint(new JsonObjectMapper(), OcppVersion.V_12, chargeBoxId, path);
+        this.client =
+                new OcppJsonChargePoint(JsonObjectMapper.createObjectMapper(), OcppVersion.V_12, chargeBoxId, path);
         this.client.start();
     }
 
     @Override
     public void bootNotification(String vendor, String model) {
+        var req = new BootNotificationRequest();
+        req.setChargePointVendor(vendor);
+        req.setChargePointModel(model);
+
         client.prepare(
-                new BootNotificationRequest()
-                        .withChargePointVendor(vendor)
-                        .withChargePointModel(model),
+                req,
                 ocpp.cs._2010._08.BootNotificationResponse.class,
                 response -> assertThat(response.getStatus()).isEqualTo(ocpp.cs._2010._08.RegistrationStatus.ACCEPTED),
                 error -> {
@@ -50,11 +69,13 @@ public class Ocpp12JsonClient implements OcppTestClient {
 
     @Override
     public void stopTransaction(int transactionId, int meterStop, OffsetDateTime timestamp) {
+        var req = new StopTransactionRequest();
+        req.setTransactionId(transactionId);
+        req.setTimestamp(timestamp);
+        req.setMeterStop(meterStop);
+
         client.prepare(
-                new StopTransactionRequest()
-                        .withTransactionId(transactionId)
-                        .withTimestamp(timestamp)
-                        .withMeterStop(meterStop),
+                req,
                 ocpp.cs._2010._08.StopTransactionResponse.class,
                 response -> assertThat(response).isNotNull(),
                 error -> {
@@ -65,13 +86,16 @@ public class Ocpp12JsonClient implements OcppTestClient {
 
     @Override
     public void meterValues(int connectorId, int transactionId, OffsetDateTime timestamp, String value) {
-        var meterValue = new MeterValue()
-                .withTimestamp(timestamp)
-                .withSampledValue(Collections.singletonList(new SampledValue().withValue(value)));
-        var meterValuesRequest = new MeterValuesRequest()
-                .withConnectorId(connectorId)
-                .withTransactionId(transactionId)
-                .withMeterValue(Collections.singletonList(meterValue));
+        var meterValue = new MeterValue();
+        meterValue.setTimestamp(timestamp);
+        meterValue.setValue(Integer.parseInt(value));
+
+        var meterValuesRequest = new MeterValuesRequest();
+        meterValuesRequest.setConnectorId(connectorId);
+        // OCPP 1.2 does not support transactionId in MeterValues
+        // req.setTransactionId(transactionId);
+        meterValuesRequest.getValues().add(meterValue);
+
         client.prepare(
                 meterValuesRequest,
                 ocpp.cs._2010._08.MeterValuesResponse.class,
@@ -89,7 +113,8 @@ public class Ocpp12JsonClient implements OcppTestClient {
                 ocpp.cs._2010._08.HeartbeatResponse.class,
                 response -> {
                     assertThat(response).isNotNull();
-                    assertThat(response.getCurrentTime()).isCloseTo(OffsetDateTime.now(), byLessThan(1, ChronoUnit.SECONDS));
+                    assertThat(response.getCurrentTime())
+                            .isCloseTo(OffsetDateTime.now(), byLessThan(1, ChronoUnit.SECONDS));
                 },
                 error -> {
                     throw new RuntimeException(error.toString());
@@ -99,11 +124,13 @@ public class Ocpp12JsonClient implements OcppTestClient {
 
     @Override
     public void statusNotification(int connectorId, String status, String errorCode, OffsetDateTime timestamp) {
-        var statusNotificationRequest = new StatusNotificationRequest()
-                .withConnectorId(connectorId)
-                .withStatus(ChargePointStatus.fromValue(status))
-                .withErrorCode(ChargePointErrorCode.fromValue(errorCode))
-                .withTimestamp(timestamp);
+        var statusNotificationRequest = new StatusNotificationRequest();
+        statusNotificationRequest.setConnectorId(connectorId);
+        statusNotificationRequest.setStatus(ChargePointStatus.fromValue(status));
+        statusNotificationRequest.setErrorCode(ChargePointErrorCode.fromValue(errorCode));
+        // OCPP 1.2 does not support timestamp in StatusNotification
+        // statusNotificationRequest.setTimestamp(timestamp);
+
         client.prepare(
                 statusNotificationRequest,
                 ocpp.cs._2010._08.StatusNotificationResponse.class,

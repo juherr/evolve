@@ -24,11 +24,13 @@ import de.rwth.idsg.steve.jooq.config.JooqConfiguration;
 import de.rwth.idsg.steve.repository.dto.ChargePoint;
 import de.rwth.idsg.steve.repository.dto.ConnectorStatus;
 import de.rwth.idsg.steve.repository.dto.InsertReservationParams;
+import de.rwth.idsg.steve.repository.dto.InsertTransactionParams;
 import de.rwth.idsg.steve.repository.dto.Reservation;
 import de.rwth.idsg.steve.repository.dto.Transaction;
 import de.rwth.idsg.steve.repository.dto.TransactionDetails;
 import de.rwth.idsg.steve.repository.impl.AddressRepositoryImpl;
 import de.rwth.idsg.steve.repository.impl.ChargePointRepositoryImpl;
+import de.rwth.idsg.steve.repository.impl.OcppServerRepositoryImpl;
 import de.rwth.idsg.steve.repository.impl.OcppTagRepositoryImpl;
 import de.rwth.idsg.steve.repository.impl.ReservationRepositoryImpl;
 import de.rwth.idsg.steve.repository.impl.TransactionRepositoryImpl;
@@ -212,12 +214,22 @@ public class __DatabasePreparer__ {
     }
 
     public static int startTransaction() {
-        var impl = new TransactionRepositoryImpl(dslContext);
-        return impl.start(getRegisteredChargeBoxId(), 1, getRegisteredOcppTag(), 0);
+        var ocppRepo = new OcppServerRepositoryImpl(dslContext, new ReservationRepositoryImpl(dslContext));
+
+        var params = InsertTransactionParams.builder()
+                .chargeBoxId(getRegisteredChargeBoxId())
+                .connectorId(1)
+                .idTag(getRegisteredOcppTag())
+                .startTimestamp(Instant.now())
+                .eventTimestamp(Instant.now())
+                .startMeterValue("0")
+                .build();
+
+        return ocppRepo.insertTransaction(params);
     }
 
     public static Transaction getTransaction(int transactionId) {
         var impl = new TransactionRepositoryImpl(dslContext);
-        return impl.get(transactionId).orElseThrow();
+        return impl.getTransaction(transactionId).orElseThrow();
     }
 }

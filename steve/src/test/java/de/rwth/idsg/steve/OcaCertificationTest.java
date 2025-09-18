@@ -1,6 +1,23 @@
+/*
+ * SteVe - SteckdosenVerwaltung - https://github.com/steve-community/steve
+ * Copyright (C) 2013-2025 SteVe Community Team
+ * All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package de.rwth.idsg.steve;
 
-import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.utils.Helpers;
 import de.rwth.idsg.steve.utils.LogFileRetriever;
 import de.rwth.idsg.steve.utils.SteveConfigurationReader;
@@ -32,8 +49,7 @@ public class OcaCertificationTest {
                 Arguments.of(new Ocpp16SoapClient(REGISTERED_CHARGE_BOX_ID, httpPath)),
                 Arguments.of(new Ocpp12JsonClient(REGISTERED_CHARGE_BOX_ID, getWsPath(config))),
                 Arguments.of(new Ocpp15JsonClient(REGISTERED_CHARGE_BOX_ID, getWsPath(config))),
-                Arguments.of(new Ocpp16JsonClient(REGISTERED_CHARGE_BOX_ID, getWsPath(config)))
-        );
+                Arguments.of(new Ocpp16JsonClient(REGISTERED_CHARGE_BOX_ID, getWsPath(config))));
     }
 
     private static final String REGISTERED_CHARGE_BOX_ID = __DatabasePreparer__.getRegisteredChargeBoxId();
@@ -109,6 +125,7 @@ public class OcaCertificationTest {
     @MethodSource("ocppClients")
     public void testStatusNotification(OcppTestClient client) {
         client.bootNotification("test-vendor", "test-model");
-        client.statusNotification(1, ChargePointStatus.CHARGING.value(), ChargePointErrorCode.NO_ERROR.value(), OffsetDateTime.now());
+        client.statusNotification(
+                1, ChargePointStatus.CHARGING.value(), ChargePointErrorCode.NO_ERROR.value(), OffsetDateTime.now());
     }
 }
