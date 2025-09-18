@@ -210,4 +210,14 @@ public class __DatabasePreparer__ {
     private static void insertOcppIdTag(DSLContext ctx) {
         ctx.insertInto(OCPP_TAG).set(OCPP_TAG.ID_TAG, getRegisteredOcppTag()).execute();
     }
+
+    public static int startTransaction() {
+        var impl = new TransactionRepositoryImpl(dslContext);
+        return impl.start(getRegisteredChargeBoxId(), 1, getRegisteredOcppTag(), 0);
+    }
+
+    public static Transaction getTransaction(int transactionId) {
+        var impl = new TransactionRepositoryImpl(dslContext);
+        return impl.get(transactionId).orElseThrow();
+    }
 }

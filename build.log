@@ -1,0 +1,41 @@
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -------------------------< de.rwth.idsg:steve >-------------------------
+[INFO] Building steve 3.8.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The POM for de.rwth.idsg:steve-jooq:jar:3.8.0-SNAPSHOT is missing, no dependency information available
+[WARNING] The POM for de.rwth.idsg:steve-ui-jsp:jar:3.8.0-SNAPSHOT is missing, no dependency information available
+[WARNING] The POM for de.rwth.idsg:steve-ocpp-transport-soap:jar:3.8.0-SNAPSHOT is missing, no dependency information available
+[WARNING] The POM for de.rwth.idsg:steve-ocpp-transport-websocket:jar:3.8.0-SNAPSHOT is missing, no dependency information available
+[WARNING] The POM for de.rwth.idsg:steve-api:jar:3.8.0-SNAPSHOT is missing, no dependency information available
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.501 s
+[INFO] Finished at: 2025-09-18T04:47:34Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal on project steve: Could not resolve dependencies for project de.rwth.idsg:steve:jar:3.8.0-SNAPSHOT
+[ERROR] dependency: de.rwth.idsg:steve-jooq:jar:3.8.0-SNAPSHOT (compile)
+[ERROR] 	de.rwth.idsg:steve-jooq:jar:3.8.0-SNAPSHOT was not found in https://repo1.maven.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
+[ERROR] 	de.rwth.idsg:steve-jooq:jar:3.8.0-SNAPSHOT was not found in https://jitpack.io during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of JitPack has elapsed or updates are forced
+[ERROR] dependency: de.rwth.idsg:steve-ui-jsp:jar:3.8.0-SNAPSHOT (compile)
+[ERROR] 	de.rwth.idsg:steve-ui-jsp:jar:3.8.0-SNAPSHOT was not found in https://repo1.maven.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
+[ERROR] 	de.rwth.idsg:steve-ui-jsp:jar:3.8.0-SNAPSHOT was not found in https://jitpack.io during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of JitPack has elapsed or updates are forced
+[ERROR] dependency: de.rwth.idsg:steve-ocpp-transport-soap:jar:3.8.0-SNAPSHOT (compile)
+[ERROR] 	de.rwth.idsg:steve-ocpp-transport-soap:jar:3.8.0-SNAPSHOT was not found in https://repo1.maven.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
+[ERROR] 	de.rwth.idsg:steve-ocpp-transport-soap:jar:3.8.0-SNAPSHOT was not found in https://jitpack.io during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of JitPack has elapsed or updates are forced
+[ERROR] dependency: de.rwth.idsg:steve-ocpp-transport-websocket:jar:3.8.0-SNAPSHOT (compile)
+[ERROR] 	de.rwth.idsg:steve-ocpp-transport-websocket:jar:3.8.0-SNAPSHOT was not found in https://repo1.maven.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
+[ERROR] 	de.rwth.idsg:steve-ocpp-transport-websocket:jar:3.8.0-SNAPSHOT was not found in https://jitpack.io during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of JitPack has elapsed or updates are forced
+[ERROR] dependency: de.rwth.idsg:steve-api:jar:3.8.0-SNAPSHOT (compile)
+[ERROR] 	de.rwth.idsg:steve-api:jar:3.8.0-SNAPSHOT was not found in https://repo1.maven.org/maven2 during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of central has elapsed or updates are forced
+[ERROR] 	de.rwth.idsg:steve-api:jar:3.8.0-SNAPSHOT was not found in https://jitpack.io during a previous attempt. This failure was cached in the local repository and resolution is not reattempted until the update interval of JitPack has elapsed or updates are forced
+[ERROR]
+[ERROR] -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
