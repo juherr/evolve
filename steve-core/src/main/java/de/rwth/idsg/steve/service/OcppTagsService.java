@@ -19,6 +19,7 @@
 package de.rwth.idsg.steve.service;
 
 import com.google.common.base.Strings;
+import de.rwth.idsg.steve.SteveException;
 import de.rwth.idsg.steve.repository.OcppTagRepository;
 import de.rwth.idsg.steve.repository.dto.OcppTag;
 import de.rwth.idsg.steve.repository.dto.OcppTagActivity;
@@ -151,10 +152,30 @@ public class OcppTagsService {
     }
 
     public void updateOcppTag(OcppTagForm form) {
+        if (form.getOcppTagPk() == null) {
+            throw new SteveException.BadRequest("OcppTagPk is missing in the form for update");
+        }
+
+        OcppTagActivity tag = ocppTagRepository
+                .getRecord(form.getOcppTagPk())
+                .orElseThrow(() -> new SteveException.NotFound("Tag not found with PK: " + form.getOcppTagPk()));
+
+        if ("OCPI".equalsIgnoreCase(tag.getCreationOrigin())) {
+            throw new SteveException.BadRequest("Cannot modify a tag created via OCPI: " + tag.getIdTag());
+        }
+
         ocppTagRepository.updateOcppTag(form);
     }
 
     public void deleteOcppTag(int ocppTagPk) {
+        OcppTagActivity tag = ocppTagRepository
+                .getRecord(ocppTagPk)
+                .orElseThrow(() -> new SteveException.NotFound("Tag not found with PK: " + ocppTagPk));
+
+        if ("OCPI".equalsIgnoreCase(tag.getCreationOrigin())) {
+            throw new SteveException.BadRequest("Cannot delete a tag created via OCPI. PK: " + ocppTagPk);
+        }
+
         ocppTagRepository.deleteOcppTag(ocppTagPk);
     }
 }

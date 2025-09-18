@@ -142,6 +142,7 @@
             <thead>
             <tr>
                 <th data-sort="string">ID Tag</th>
+                <th data-sort="string">Origin</th>
                 <th data-sort="int">User ID</th>
                 <th data-sort="string">Parent ID Tag</th>
                 <th data-sort="date">Expiry Date/Time</th>
@@ -158,6 +159,7 @@
             <c:forEach items="${ocppTagList}" var="item">
                 <tr>
                     <td><a href="${ctxPath}/manager/ocppTags/details/${item.ocppTagPk}">${item.idTag}</a></td>
+                    <td>${item.creationOrigin}</td>
                     <td>
                         <c:choose>
                             <c:when test="${not empty item.userPk}">

@@ -39,6 +39,13 @@ public class OcppTagActivity {
     private final int maxActiveTransactionCount;
     private final long activeTransactionCount;
     private final String note;
+    private final String creationOrigin;
+    private final @Nullable String issuer;
+    private final @Nullable String type;
+    private final @Nullable String contractId;
+    private final @Nullable String language;
+    private final @Nullable String visualNumber;
+    private final @Nullable Instant lastUpdated;
 
     public boolean hasReachedLimitOfActiveTransactions() {
         // blocked

@@ -147,3 +147,23 @@ To automatically add license headers to your files, run:
 ```bash
 ./mvnw license:format
 ```
+
+## Build Environment Notes
+
+### Docker Permissions Issue on Linux
+
+When building this project on a Linux-based environment where the current user is not in the `docker` group, the Maven build may fail during the `steve-jooq` module's `generate-sources` phase. This is because the `testcontainers` plugin, which is used to spin up a temporary database for jOOQ code generation, cannot connect to the Docker daemon socket (`/var/run/docker.sock`) due to insufficient permissions.
+
+The build will fail with an error similar to this:
+`Could not find a valid Docker environment. Please see logs and check configuration`
+
+**Workaround:**
+
+To resolve this, you must run the Maven build command with `sudo` to grant the necessary permissions. Additionally, if `mvn` is not in the `root` user's `PATH`, you will need to provide the full path to the Maven executable.
+
+Example command:
+```bash
+sudo /usr/share/maven/bin/mvn clean install -DskipTests
+```
+
+This ensures that the `testcontainers` plugin can successfully connect to the Docker daemon and the build can complete.

@@ -3,15 +3,10 @@ volumes:
 
 services:
   db:
-    # Pinning MariaDB to point release 10.4.30 works around the issues with the
-    # database migrations seen with 10.4.31 in issue #1212.
-    #
-    # TODO: Get database migrations to work with the latest point releases of
-    # MariaDB 10.4.
     image: mariadb:10.4.30
     restart: unless-stopped
-    #ports:
-    #  - '3306:3306' # expose DB to host if needed only
+    ports:
+      - '3306:3306' # expose DB to host
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
       MYSQL_DATABASE: stevedb
@@ -34,7 +29,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_HOST: db #host.docker.internal
+      DB_HOST: db
       DB_PORT: 3306
       DB_DATABASE: stevedb
       DB_USER: steve

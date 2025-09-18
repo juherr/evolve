@@ -29,7 +29,7 @@ import jooq.steve.db.tables.records.OcppTagActivityRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.JoinType;
-import org.jooq.Record11;
+import org.jooq.Record18;
 import org.jooq.RecordMapper;
 import org.jooq.SelectQuery;
 import org.jooq.TableField;
@@ -85,7 +85,14 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
                 OCPP_TAG_ACTIVITY.MAX_ACTIVE_TRANSACTION_COUNT,
                 OCPP_TAG_ACTIVITY.ACTIVE_TRANSACTION_COUNT,
                 OCPP_TAG_ACTIVITY.NOTE,
-                userOcppTagTable.USER_PK);
+                userOcppTagTable.USER_PK,
+                OCPP_TAG_ACTIVITY.CREATION_ORIGIN,
+                OCPP_TAG_ACTIVITY.ISSUER,
+                OCPP_TAG_ACTIVITY.TYPE,
+                OCPP_TAG_ACTIVITY.CONTRACT_ID,
+                OCPP_TAG_ACTIVITY.LANGUAGE,
+                OCPP_TAG_ACTIVITY.VISUAL_NUMBER,
+                OCPP_TAG_ACTIVITY.LAST_UPDATED);
 
         selectQuery.addJoin(
                 parentTable, JoinType.LEFT_OUTER_JOIN, parentTable.ID_TAG.eq(OCPP_TAG_ACTIVITY.PARENT_ID_TAG));
@@ -288,7 +295,7 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
 
     private static class OcppTagOverviewMapper
             implements RecordMapper<
-                    Record11<
+                    Record18<
                             Integer,
                             Integer,
                             String,
@@ -299,11 +306,18 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
                             Integer,
                             Long,
                             String,
-                            Integer>,
+                            Integer,
+                            String,
+                            String,
+                            String,
+                            String,
+                            String,
+                            String,
+                            LocalDateTime>,
                     OcppTagOverview> {
         @Override
         public OcppTagOverview map(
-                Record11<
+                Record18<
                                 Integer,
                                 Integer,
                                 String,
@@ -314,7 +328,14 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
                                 Integer,
                                 Long,
                                 String,
-                                Integer>
+                                Integer,
+                                String,
+                                String,
+                                String,
+                                String,
+                                String,
+                                String,
+                                LocalDateTime>
                         r) {
             return OcppTagOverview.builder()
                     .ocppTagPk(r.value1())
@@ -329,6 +350,13 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
                     .activeTransactionCount(r.value9())
                     .note(r.value10())
                     .userPk(r.value11())
+                    .creationOrigin(r.value12())
+                    .issuer(r.value13())
+                    .type(r.value14())
+                    .contractId(r.value15())
+                    .language(r.value16())
+                    .visualNumber(r.value17())
+                    .lastUpdated(toInstant(r.value18()))
                     .build();
         }
     }

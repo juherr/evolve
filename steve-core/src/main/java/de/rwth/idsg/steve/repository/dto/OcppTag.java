@@ -77,5 +77,26 @@ public final class OcppTag {
 
         @Schema(description = "An additional note")
         private final String note;
+
+        @Schema(description = "Origin of the tag (e.g., UI, OCPI)")
+        private final String creationOrigin;
+
+        @Schema(description = "OCPI field: Issuing company")
+        private final @Nullable String issuer;
+
+        @Schema(description = "OCPI field: Type of the token (e.g., RFID, APP_USER)")
+        private final @Nullable String type;
+
+        @Schema(description = "OCPI field: Uniquely identifies the EV Driver contract token")
+        private final @Nullable String contractId;
+
+        @Schema(description = "OCPI field: Language Code ISO 639-1")
+        private final @Nullable String language;
+
+        @Schema(description = "OCPI field: Visual readable number/identification")
+        private final @Nullable String visualNumber;
+
+        @Schema(description = "OCPI field: Last updated")
+        private final @Nullable Instant lastUpdated;
     }
 }

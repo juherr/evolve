@@ -24,6 +24,7 @@
     <module>steve-ocpp-transport-soap</module>
     <module>steve-ocpp-transport-websocket</module>
     <module>steve-ui-jsp</module>
+    <module>evolve-ocpi</module>
   </modules>
 
   <properties>
