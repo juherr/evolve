@@ -19,7 +19,6 @@
 package de.rwth.idsg.steve.ocpp.soap;
 
 import com.oneandone.compositejks.SslContextBuilder;
-import de.rwth.idsg.steve.SteveConfiguration;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.ext.logging.LoggingFeature;
@@ -28,6 +27,7 @@ import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.ws.addressing.WSAddressingFeature;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.net.ssl.SSLContext;
@@ -43,12 +43,15 @@ public class ClientProvider {
     private final @Nullable TLSClientParameters tlsClientParams;
     private final LoggingFeature loggingFeature;
 
-    public ClientProvider(SteveConfiguration config, LoggingFeature loggingFeature) {
+    public ClientProvider(
+            LoggingFeature loggingFeature,
+            @Value("${server.ssl.key-store:}") String keyStore,
+            @Value("${server.ssl.key-store-password:}") String keyStorePassword,
+            @Value("${server.ssl.enabled:false}") boolean sslEnabled) {
         this.loggingFeature = loggingFeature;
-        var jettyConfig = config.getJetty();
-        if (shouldInitSSL(jettyConfig)) {
+        if (shouldInitSSL(sslEnabled, keyStore, keyStorePassword)) {
             tlsClientParams = new TLSClientParameters();
-            tlsClientParams.setSslContext(setupSSL(jettyConfig));
+            tlsClientParams.setSslContext(setupSSL(keyStore, keyStorePassword));
         } else {
             tlsClientParams = null;
         }
@@ -77,19 +80,18 @@ public class ClientProvider {
         return f;
     }
 
-    private static boolean shouldInitSSL(SteveConfiguration.Jetty jettyConfig) {
-        return jettyConfig.getKeyStorePath() != null
-                && !jettyConfig.getKeyStorePath().isBlank()
-                && jettyConfig.getKeyStorePassword() != null
-                && !jettyConfig.getKeyStorePassword().isBlank();
+    private static boolean shouldInitSSL(boolean sslEnabled, String keyStore, String keyStorePassword) {
+        return sslEnabled
+                && keyStore != null
+                && !keyStore.isBlank()
+                && keyStorePassword != null
+                && !keyStorePassword.isBlank();
     }
 
-    private static SSLContext setupSSL(SteveConfiguration.Jetty jettyConfig) {
+    private static SSLContext setupSSL(String keyStore, String keyStorePassword) {
         try {
-            var keyStorePath = jettyConfig.getKeyStorePath();
-            var keyStorePwd = jettyConfig.getKeyStorePassword();
             return SslContextBuilder.builder()
-                    .keyStoreFromFile(keyStorePath, keyStorePwd)
+                    .keyStoreFromFile(keyStore, keyStorePassword)
                     .usingTLS()
                     .usingDefaultAlgorithm()
                     .usingKeyManagerPasswordFromKeyStore()

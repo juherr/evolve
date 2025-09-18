@@ -22,8 +22,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import de.rwth.idsg.steve.SteveConfiguration;
 import de.rwth.idsg.steve.SteveException;
+import de.rwth.idsg.steve.config.SteveProperties;
 import de.rwth.idsg.steve.repository.WebUserRepository;
 import de.rwth.idsg.steve.repository.dto.WebUser;
 import de.rwth.idsg.steve.service.dto.WebUserOverview;
@@ -73,7 +73,7 @@ public class WebUsersService implements UserDetailsManager {
     // Because Guava's cache does not accept a null value
     private static final UserDetails DUMMY_USER = new User("#", "#", Collections.emptyList());
 
-    private final SteveConfiguration config;
+    private final SteveProperties steveProperties;
     private final ObjectMapper mapper;
     private final WebUserRepository webUserRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy = getContextHolderStrategy();
@@ -91,8 +91,8 @@ public class WebUsersService implements UserDetailsManager {
         }
 
         var user = WebUser.builder()
-                .login(config.getAuth().getUserName())
-                .password(config.getAuth().getEncodedPassword())
+                .login(steveProperties.getAuth().getUser())
+                .password(encoder.encode(steveProperties.getAuth().getPassword()))
                 .enabled(true)
                 .authorities(EnumSet.of(WebUserAuthority.ADMIN))
                 .build();

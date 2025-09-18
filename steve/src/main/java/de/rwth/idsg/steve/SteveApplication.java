@@ -16,20 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package de.rwth.idsg.steve.ocpp;
+package de.rwth.idsg.steve;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import de.rwth.idsg.steve.config.SteveProperties;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-import static org.assertj.core.api.Assertions.assertThat;
+@SpringBootApplication
+@EnableConfigurationProperties(SteveProperties.class)
+public class SteveApplication {
 
-public class OcppProtocolTest {
-
-    @ParameterizedTest
-    @EnumSource(OcppProtocol.class)
-    public void testFromCompositeValue(OcppProtocol input) {
-        var toTest = input.getCompositeValue();
-        var inputBack = OcppProtocol.fromCompositeValue(toTest);
-        assertThat(inputBack).isEqualTo(input);
+    public static void main(String[] args) {
+        SpringApplication.run(SteveApplication.class, args);
     }
 }

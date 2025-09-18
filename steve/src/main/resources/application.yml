@@ -1,0 +1,97 @@
+server:
+  port: ${PORT:8180}
+  servlet:
+    context-path: /${context.path:}
+  jetty:
+    threads:
+      min: 4
+      max: 50
+    idle-timeout: 1m
+  forward-headers-strategy: framework
+  ssl:
+    enabled: ${https.enabled:false}
+    port: ${https.port:8443}
+    key-store: ${keystore.path:}
+    key-store-password: ${keystore.password:}
+
+spring:
+  application:
+    name: steve
+  profiles:
+    active: ${profile:dev}
+  main:
+    banner-mode: "off"
+  datasource:
+    url: jdbc:mysql://${db.host:localhost}:${db.port:3306}/${db.schema:stevedb}?sslMode=PREFERRED&serverTimezone=UTC
+    username: ${db.user:steve}
+    password: ${db.password:changeme}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jooq:
+    sql-dialect: MYSQL
+  flyway:
+    init-sql: SET default_storage_engine=InnoDB
+    out-of-order: true
+    table: schema_version
+    clean-disabled: true
+    locations: classpath:db/migration
+  mvc:
+    view:
+      prefix: /WEB-INF/views/
+      suffix: .jsp
+
+steve:
+  auth:
+    user: ${auth.user:admin}
+    password: ${auth.password:1234}
+  webapi:
+    key: ${webapi.key:STEVE-API-KEY}
+    value: ${webapi.value:}
+  ocpp:
+    ws-session-select-strategy: ALWAYS_LAST
+    auto-register-unknown-stations: false
+    charge-box-id-validation-regex:
+    soap:
+      router-endpoint-path: /
+  version: ${project.version}
+  git-describe: ${git.commit.id.describe:}
+
+logging:
+  level:
+    de:
+      rwth:
+        idsg:
+          steve: INFO
+    org:
+      springframework: INFO
+      jooq: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/steve.log
+
+---
+spring:
+  profiles: dev
+  jooq:
+    sql-dialect: MYSQL
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    de.rwth.idsg.steve: DEBUG
+    org.jooq: DEBUG
+
+---
+spring:
+  profiles: prod
+  jooq:
+    sql-dialect: MYSQL
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    de.rwth.idsg.steve: INFO
+    org.jooq: INFO
