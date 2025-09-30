@@ -24,6 +24,7 @@
   <modules>
     <module>steve</module>
     <module>steve-api</module>
+    <module>steve-bom</module>
     <module>steve-core</module>
     <module>steve-jooq</module>
     <module>steve-ocpp</module>
@@ -52,48 +53,10 @@
     <dependencies>
       <dependency>
         <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-core</artifactId>
+        <artifactId>steve-bom</artifactId>
         <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-jooq</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-ocpp</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-ocpp-1-x</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-ocpp-2-x</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-ocpp-transport-soap</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-ocpp-transport-websocket</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-api</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.rwth.idsg</groupId>
-        <artifactId>steve-ui-jsp</artifactId>
-        <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.cxf</groupId>
