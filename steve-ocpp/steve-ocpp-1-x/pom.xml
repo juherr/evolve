@@ -12,7 +12,7 @@
   <dependencies>
     <dependency>
       <groupId>de.rwth.idsg</groupId>
-      <artifactId>steve-ocpp</artifactId>
+      <artifactId>steve-ocpp-commons</artifactId>
     </dependency>
   </dependencies>
 

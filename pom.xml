@@ -26,13 +26,13 @@
     <module>steve-api</module>
     <module>steve-bom</module>
     <module>steve-core</module>
-    <module>steve-jooq</module>
-    <module>steve-ocpp</module>
-    <module>steve-ocpp-1-x</module>
-    <module>steve-ocpp-2-x</module>
-    <module>steve-ocpp-transport-soap</module>
-    <module>steve-ocpp-transport-websocket</module>
-    <module>steve-ui-jsp</module>
+    <module>steve-db/steve-jooq</module>
+    <module>steve-ocpp/steve-ocpp-1-x</module>
+    <module>steve-ocpp/steve-ocpp-2-x</module>
+    <module>steve-ocpp/steve-ocpp-commons</module>
+    <module>steve-ocpp/steve-ocpp-transport-soap</module>
+    <module>steve-ocpp/steve-ocpp-transport-websocket</module>
+    <module>steve-ui/steve-ui-jsp</module>
   </modules>
 
   <properties>

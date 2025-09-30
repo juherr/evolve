@@ -8,7 +8,7 @@
     <version>3.8.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>steve-ocpp</artifactId>
+  <artifactId>steve-ocpp-commons</artifactId>
 
   <dependencies>
     <dependency>
