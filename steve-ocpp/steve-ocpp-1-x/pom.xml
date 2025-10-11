@@ -5,6 +5,7 @@
     <groupId>de.rwth.idsg</groupId>
     <artifactId>steve-parent</artifactId>
     <version>3.8.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <artifactId>steve-ocpp-1-x</artifactId>
