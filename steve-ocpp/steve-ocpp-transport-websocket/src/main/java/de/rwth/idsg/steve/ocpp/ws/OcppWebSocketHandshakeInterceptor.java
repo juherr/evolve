@@ -30,10 +30,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
-import org.springframework.web.socket.server.HandshakeFailureException;
-import org.springframework.web.socket.server.HandshakeHandler;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.List;
 import java.util.Map;
@@ -44,31 +41,20 @@ import java.util.Map;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class OcppWebSocketHandshakeHandler implements HandshakeHandler {
+public class OcppWebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
     private final ChargeBoxIdValidator chargeBoxIdValidator;
-    private final DefaultHandshakeHandler delegate;
-    private final List<AbstractWebSocketEndpoint> endpoints;
+    private final List<OcppWebSocketHandler> endpoints;
     private final ChargePointRegistrationService chargePointRegistrationService;
     private final String pathInfix;
 
-    /**
-     * We need some WebSocketHandler just for Spring to register it for the path. We will not use it for the actual
-     * operations. This instance will be passed to doHandshake(..) below. We will find the proper WebSocketEndpoint
-     * based on the selectedProtocol and replace the dummy one with the proper one in the subsequent call chain.
-     */
-    public WebSocketHandler getDummyWebSocketHandler() {
-        return new TextWebSocketHandler();
-    }
-
     @Override
-    public boolean doHandshake(
+    public boolean beforeHandshake(
             ServerHttpRequest request,
             ServerHttpResponse response,
             WebSocketHandler wsHandler,
             Map<String, Object> attributes)
-            throws HandshakeFailureException {
-
+            throws Exception {
         // -------------------------------------------------------------------------
         // 1. Check the chargeBoxId
         // -------------------------------------------------------------------------
@@ -119,10 +105,19 @@ public class OcppWebSocketHandshakeHandler implements HandshakeHandler {
                 "ChargeBoxId '{}' will be using {}",
                 chargeBoxId,
                 endpoint.getClass().getSimpleName());
-        return delegate.doHandshake(request, response, endpoint, attributes);
+        return true;
     }
 
-    private @Nullable AbstractWebSocketEndpoint selectEndpoint(List<String> requestedProtocols) {
+    @Override
+    public void afterHandshake(
+            ServerHttpRequest request,
+            ServerHttpResponse response,
+            WebSocketHandler wsHandler,
+            @Nullable Exception exception) {
+        // Nothing to do here
+    }
+
+    private @Nullable OcppWebSocketHandler selectEndpoint(List<String> requestedProtocols) {
         for (var requestedProtocol : requestedProtocols) {
             for (var item : endpoints) {
                 if (item.getVersion().getValue().equals(requestedProtocol)) {

@@ -23,7 +23,6 @@ import com.google.common.base.Strings;
 import de.rwth.idsg.steve.config.DelegatingTaskScheduler;
 import de.rwth.idsg.steve.config.OcppWebSocketConfiguration;
 import de.rwth.idsg.steve.ocpp.OcppTransport;
-import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.ocpp.ws.data.CommunicationContext;
 import de.rwth.idsg.steve.ocpp.ws.data.SessionContext;
 import de.rwth.idsg.steve.ocpp.ws.pipeline.Deserializer;
@@ -43,6 +42,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +55,9 @@ import java.util.function.Consumer;
  * @author Sevket Goekay <sevketgokay@gmail.com>
  * @since 17.03.2015
  */
-public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandler implements SubProtocolCapable {
+public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandler
+        implements SubProtocolCapable, OcppWebSocketHandler {
+    public static final Duration PING_INTERVAL = Duration.ofMinutes(15);
     public static final String CHARGEBOX_ID_KEY = "CHARGEBOX_ID_KEY";
 
     private final WebSocketLogger webSocketLogger;
@@ -96,8 +98,6 @@ public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandl
         this.disconnectedCallbackList.add(chargeBoxId ->
                 applicationEventPublisher.publishEvent(new OcppStationWebSocketDisconnected(chargeBoxId)));
     }
-
-    public abstract OcppVersion getVersion();
 
     @Override
     public List<String> getSubProtocols() {
@@ -154,8 +154,8 @@ public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandl
         // the connection because of a idle timeout, we ping-pong at fixed intervals.
         var pingSchedule = asyncTaskScheduler.scheduleAtFixedRate(
                 new PingTask(webSocketLogger, chargeBoxId, session),
-                Instant.now().plus(OcppWebSocketConfiguration.PING_INTERVAL),
-                OcppWebSocketConfiguration.PING_INTERVAL);
+                Instant.now().plus(PING_INTERVAL),
+                PING_INTERVAL);
 
         futureResponseContextStore.addSession(session);
 
@@ -209,7 +209,7 @@ public abstract class AbstractWebSocketEndpoint extends ConcurrentWebSocketHandl
     // Helpers
     // -------------------------------------------------------------------------
 
-    protected @Nullable String getChargeBoxId(WebSocketSession session) {
+    protected static @Nullable String getChargeBoxId(WebSocketSession session) {
         return (String) session.getAttributes().get(CHARGEBOX_ID_KEY);
     }
 

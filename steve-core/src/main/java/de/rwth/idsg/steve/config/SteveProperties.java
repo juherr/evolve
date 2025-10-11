@@ -23,6 +23,8 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 /**
  * @author Sevket Goekay <sevketgokay@gmail.com>
  * @since 19.08.2014
@@ -84,5 +86,13 @@ public class SteveProperties {
         private boolean autoRegisterUnknownStations;
         private @Nullable String chargeBoxIdValidationRegex;
         private String wsSessionSelectStrategy;
+        private Ws ws = new Ws();
+
+        @Data
+        public static class Ws {
+            private @Nullable Integer maxTextMessageSize;
+            private @Nullable Duration idleTimeout;
+            private String[] allowedOriginPatterns;
+        }
     }
 }

@@ -83,3 +83,9 @@ steve:
     # de.rwth.idsg.steve.web.validation.ChargeBoxIdValidator.REGEX to validate the format of the chargeBoxId values
     #
     charge-box-id-validation-regex:
+
+    ws:
+      max-text-message-size: 8388608   # 8 MiB
+      idle-timeout: 2h
+      allowed-origin-patterns:
+        - "*"

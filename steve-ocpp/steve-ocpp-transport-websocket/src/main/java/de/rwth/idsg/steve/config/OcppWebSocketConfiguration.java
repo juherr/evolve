@@ -18,23 +18,25 @@
  */
 package de.rwth.idsg.steve.config;
 
-import com.google.common.collect.Lists;
-import de.rwth.idsg.steve.ocpp.ws.OcppWebSocketHandshakeHandler;
-import de.rwth.idsg.steve.ocpp.ws.ocpp12.Ocpp12WebSocketEndpoint;
-import de.rwth.idsg.steve.ocpp.ws.ocpp15.Ocpp15WebSocketEndpoint;
-import de.rwth.idsg.steve.ocpp.ws.ocpp16.Ocpp16WebSocketEndpoint;
+import de.rwth.idsg.steve.ocpp.ws.OcppWebSocketHandler;
+import de.rwth.idsg.steve.ocpp.ws.OcppWebSocketHandshakeInterceptor;
 import de.rwth.idsg.steve.service.ChargePointRegistrationService;
 import de.rwth.idsg.steve.web.validation.ChargeBoxIdValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * @author Sevket Goekay <sevketgokay@gmail.com>
@@ -46,16 +48,14 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class OcppWebSocketConfiguration implements WebSocketConfigurer {
 
-    public static final Duration PING_INTERVAL = Duration.ofMinutes(15);
-    public static final Duration IDLE_TIMEOUT = Duration.ofHours(2);
-    public static final int MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
+    public static final int DEFAULT_MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
+    private static final Duration DEFAULT_IDLE_TIMEOUT = Duration.ofHours(2);
+    private static final String[] DEFAULT_ALLOWED_ORIGINS = new String[]{"*"};
 
     private final ChargePointRegistrationService chargePointRegistrationService;
     private final ChargeBoxIdValidator chargeBoxIdValidator;
 
-    private final Ocpp12WebSocketEndpoint ocpp12WebSocketEndpoint;
-    private final Ocpp15WebSocketEndpoint ocpp15WebSocketEndpoint;
-    private final Ocpp16WebSocketEndpoint ocpp16WebSocketEndpoint;
+    private final List<OcppWebSocketHandler> ocppWebSocketHandlers;
     private final SteveProperties steveProperties;
 
     @Override
@@ -64,29 +64,43 @@ public class OcppWebSocketConfiguration implements WebSocketConfigurer {
         var pathInfix = steveProperties.getPaths().getWebsocketMapping()
                 + steveProperties.getPaths().getRouterEndpointPath() + "/";
 
-        var handshakeHandler = new OcppWebSocketHandshakeHandler(
-                chargeBoxIdValidator,
-                createHandshakeHandler(),
-                Lists.newArrayList(ocpp16WebSocketEndpoint, ocpp15WebSocketEndpoint, ocpp12WebSocketEndpoint),
-                chargePointRegistrationService,
-                pathInfix);
+        var handshakeInterceptor = new OcppWebSocketHandshakeInterceptor(
+                chargeBoxIdValidator, ocppWebSocketHandlers, chargePointRegistrationService, pathInfix);
 
-        registry.addHandler(handshakeHandler.getDummyWebSocketHandler(), pathInfix + "*")
-                .setHandshakeHandler(handshakeHandler)
-                .setAllowedOrigins("*");
+        /*
+         * We need some WebSocketHandler just for Spring to register it for the path. We will not use it for the actual
+         * operations. This instance will be passed to doHandshake(..) below. We will find the proper WebSocketEndpoint
+         * based on the selectedProtocol and replace the dummy one with the proper one in the subsequent call chain.
+         */
+        registry.addHandler(dummyWebSocketHandler(), pathInfix + "*")
+                .setHandshakeHandler(handshakeHandler())
+                .addInterceptors(handshakeInterceptor)
+                .setAllowedOrigins(steveProperties.getOcpp().getWs().getAllowedOriginPatterns() != null
+                        ? steveProperties.getOcpp().getWs().getAllowedOriginPatterns()
+                        : DEFAULT_ALLOWED_ORIGINS);
+    }
+
+    @Bean
+    public WebSocketHandler dummyWebSocketHandler() {
+        return new TextWebSocketHandler();
     }
 
     /**
-     * See Spring docs:
-     * https://docs.spring.io/spring-framework/reference/web/websocket/server.html#websocket-server-runtime-configurationCheck failure[checkstyle] src/main/java/de/rwth/idsg/steve/config/WebSocketConfiguration.java#L73 <com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck>Check failure: [checkstyle] src/main/java/de/rwth/idsg/steve/config/WebSocketConfiguration.java#L73 <com.puppycrawl.tools.checkstyle.checks.sizes.LineLengthCheck>Line is longer than 120 characters (found 121).build and run tests / checkstyleView detailsCode has alerts. Press enter to view.
-     * Otherwise, defaults come from {@link WebSocketConstants}
+     * See Spring docs: https://docs.spring.io/spring-framework/reference/web/websocket/server.html
      */
-    private static DefaultHandshakeHandler createHandshakeHandler() {
+    @Bean
+    public HandshakeHandler handshakeHandler() {
         var strategy = new JettyRequestUpgradeStrategy();
 
         strategy.addWebSocketConfigurer(configurable -> {
-            configurable.setMaxTextMessageSize(MAX_MSG_SIZE);
-            configurable.setIdleTimeout(IDLE_TIMEOUT);
+            configurable.setMaxTextMessageSize(
+                    steveProperties.getOcpp().getWs().getMaxTextMessageSize() != null
+                            ? steveProperties.getOcpp().getWs().getMaxTextMessageSize()
+                            : DEFAULT_MAX_MSG_SIZE);
+            configurable.setIdleTimeout(
+                    steveProperties.getOcpp().getWs().getIdleTimeout() != null
+                            ? steveProperties.getOcpp().getWs().getIdleTimeout()
+                            : DEFAULT_IDLE_TIMEOUT);
         });
 
         return new DefaultHandshakeHandler(strategy);
