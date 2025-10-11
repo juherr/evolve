@@ -21,7 +21,6 @@ package de.rwth.idsg.steve.ocpp.ws;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import de.rwth.idsg.steve.config.DelegatingTaskScheduler;
-import de.rwth.idsg.steve.config.OcppWebSocketConfiguration;
 import de.rwth.idsg.steve.ocpp.OcppTransport;
 import de.rwth.idsg.steve.ocpp.ws.data.CommunicationContext;
 import de.rwth.idsg.steve.ocpp.ws.data.SessionContext;
