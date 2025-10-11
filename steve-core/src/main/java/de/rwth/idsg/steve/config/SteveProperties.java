@@ -90,7 +90,7 @@ public class SteveProperties {
 
         @Data
         public static class Ws {
-            public static final int DEFAULT_MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
+            private static final int DEFAULT_MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
             private static final Duration DEFAULT_IDLE_TIMEOUT = Duration.ofHours(2);
             private static final String[] DEFAULT_ALLOWED_ORIGINS = new String[] {"*"};
 
