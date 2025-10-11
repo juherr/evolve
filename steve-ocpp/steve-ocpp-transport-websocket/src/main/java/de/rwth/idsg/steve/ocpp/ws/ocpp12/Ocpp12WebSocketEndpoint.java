@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.rwth.idsg.ocpp.jaxb.RequestType;
 import de.rwth.idsg.ocpp.jaxb.ResponseType;
 import de.rwth.idsg.steve.config.DelegatingTaskScheduler;
+import de.rwth.idsg.steve.config.SteveProperties;
 import de.rwth.idsg.steve.ocpp.OcppProtocol;
 import de.rwth.idsg.steve.ocpp.OcppVersion;
 import de.rwth.idsg.steve.ocpp.soap.CentralSystemService12_SoapServer;
@@ -54,6 +55,7 @@ import org.springframework.stereotype.Component;
 public class Ocpp12WebSocketEndpoint extends AbstractWebSocketEndpoint {
 
     public Ocpp12WebSocketEndpoint(
+            SteveProperties steveProperties,
             WebSocketLogger webSocketLogger,
             DelegatingTaskScheduler asyncTaskScheduler,
             OcppServerRepository ocppServerRepository,
@@ -65,6 +67,7 @@ public class Ocpp12WebSocketEndpoint extends AbstractWebSocketEndpoint {
             CentralSystemService12_SoapServer ocpp12Server,
             Ocpp12TypeStore ocpp12TypeStore) {
         super(
+                steveProperties,
                 webSocketLogger,
                 asyncTaskScheduler,
                 ocppServerRepository,

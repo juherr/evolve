@@ -18,16 +18,16 @@
  */
 package de.rwth.idsg.steve.ocpp.ws;
 
-import de.rwth.idsg.steve.config.OcppWebSocketConfiguration;
+import de.rwth.idsg.steve.config.SteveProperties;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Sevket Goekay <sevketgokay@gmail.com>
@@ -35,10 +35,14 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ConcurrentWebSocketHandler implements WebSocketHandler {
 
-    private static final int SEND_TIME_LIMIT = (int) TimeUnit.SECONDS.toMillis(10);
-    private static final int BUFFER_SIZE_LIMIT = 5 * OcppWebSocketConfiguration.DEFAULT_MAX_MSG_SIZE;
-
     private final Map<String, ConcurrentWebSocketSessionDecorator> sessions = new ConcurrentHashMap<>();
+    private final Duration sendTimeLimit;
+    private final int bufferSizeLimit;
+
+    protected ConcurrentWebSocketHandler(SteveProperties steveProperties) {
+        sendTimeLimit = steveProperties.getOcpp().getWs().getSendTimeLimit();
+        bufferSizeLimit = steveProperties.getOcpp().getWs().getBufferSizeLimit();
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -63,7 +67,7 @@ public abstract class ConcurrentWebSocketHandler implements WebSocketHandler {
     private ConcurrentWebSocketSessionDecorator internalGet(WebSocketSession session) {
         return sessions.computeIfAbsent(
                 session.getId(),
-                s -> new ConcurrentWebSocketSessionDecorator(session, SEND_TIME_LIMIT, BUFFER_SIZE_LIMIT));
+                s -> new ConcurrentWebSocketSessionDecorator(session, (int) sendTimeLimit.toMillis(), bufferSizeLimit));
     }
 
     // -------------------------------------------------------------------------

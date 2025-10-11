@@ -90,9 +90,21 @@ public class SteveProperties {
 
         @Data
         public static class Ws {
-            private @Nullable Integer maxTextMessageSize;
-            private @Nullable Duration idleTimeout;
-            private String[] allowedOriginPatterns;
+            public static final int DEFAULT_MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
+            private static final Duration DEFAULT_IDLE_TIMEOUT = Duration.ofHours(2);
+            private static final String[] DEFAULT_ALLOWED_ORIGINS = new String[] {"*"};
+
+            private int maxTextMessageSize = DEFAULT_MAX_MSG_SIZE;
+            private Duration idleTimeout = DEFAULT_IDLE_TIMEOUT;
+            private String[] allowedOriginPatterns = DEFAULT_ALLOWED_ORIGINS;
+
+            public int getBufferSizeLimit() {
+                return 5 * maxTextMessageSize;
+            }
+
+            public Duration getSendTimeLimit() {
+                return Duration.ofSeconds(10);
+            }
         }
     }
 }

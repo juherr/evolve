@@ -35,7 +35,6 @@ import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
-import java.time.Duration;
 import java.util.List;
 
 /**
@@ -47,10 +46,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class OcppWebSocketConfiguration implements WebSocketConfigurer {
-
-    public static final int DEFAULT_MAX_MSG_SIZE = 8_388_608; // 8 MB for max message size
-    private static final Duration DEFAULT_IDLE_TIMEOUT = Duration.ofHours(2);
-    private static final String[] DEFAULT_ALLOWED_ORIGINS = new String[] {"*"};
 
     private final ChargePointRegistrationService chargePointRegistrationService;
     private final ChargeBoxIdValidator chargeBoxIdValidator;
@@ -75,10 +70,7 @@ public class OcppWebSocketConfiguration implements WebSocketConfigurer {
         registry.addHandler(dummyWebSocketHandler(), pathInfix + "*")
                 .setHandshakeHandler(handshakeHandler())
                 .addInterceptors(handshakeInterceptor)
-                .setAllowedOrigins(
-                        steveProperties.getOcpp().getWs().getAllowedOriginPatterns() != null
-                                ? steveProperties.getOcpp().getWs().getAllowedOriginPatterns()
-                                : DEFAULT_ALLOWED_ORIGINS);
+                .setAllowedOrigins(steveProperties.getOcpp().getWs().getAllowedOriginPatterns());
     }
 
     @Bean
@@ -94,14 +86,8 @@ public class OcppWebSocketConfiguration implements WebSocketConfigurer {
         var strategy = new JettyRequestUpgradeStrategy();
 
         strategy.addWebSocketConfigurer(configurable -> {
-            configurable.setMaxTextMessageSize(
-                    steveProperties.getOcpp().getWs().getMaxTextMessageSize() != null
-                            ? steveProperties.getOcpp().getWs().getMaxTextMessageSize()
-                            : DEFAULT_MAX_MSG_SIZE);
-            configurable.setIdleTimeout(
-                    steveProperties.getOcpp().getWs().getIdleTimeout() != null
-                            ? steveProperties.getOcpp().getWs().getIdleTimeout()
-                            : DEFAULT_IDLE_TIMEOUT);
+            configurable.setMaxTextMessageSize(steveProperties.getOcpp().getWs().getMaxTextMessageSize());
+            configurable.setIdleTimeout(steveProperties.getOcpp().getWs().getIdleTimeout());
         });
 
         return new DefaultHandshakeHandler(strategy);
